@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  .grid
+    .card.col-12
+      .card-header
+        div
+          h1 Panel principal
+          p.muted Administración de módulos y operaciones del sistema.
+        .actions
+          a.btn.btn-primary(href="/comercios/vista") Ir a Comercios
+          a.btn.btn-ghost(href="/comercios/nuevo") Nuevo Comercio
+
+    .card.col-6
+      .card-header
+        div
+          h2 Comercios
+          p.muted Gestión de comercios adheridos a la plataforma.
+      .actions
+        a.btn.btn-primary(href="/comercios/vista") Ver listado
+        a.btn(href="/comercios/nuevo") Registrar nuevo
