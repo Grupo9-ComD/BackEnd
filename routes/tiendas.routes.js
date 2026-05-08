@@ -1,21 +1,27 @@
-const express = require("express");
+import express from "express";
+import {
+    obtenerTiendas,
+    obtenerTiendaPorId,
+    crearTienda,
+    actualizarTienda,
+    eliminarTienda
+} from "../controllers/tiendas.controller.js";
+
 const router = express.Router();
 
-const tiendasController = require("../controllers/tiendas.controller.js");
-
 // GET ALL
-router.get("/", tiendasController.obtenerTiendas);
+router.get("/", obtenerTiendas);
 
 // GET BY ID
-router.get("/:id", tiendasController.obtenerTiendaPorId);
+router.get("/:id", obtenerTiendaPorId);
 
 // CREATE
-router.post("/", tiendasController.crearTienda);
+router.post("/", crearTienda);
 
 // UPDATE
-router.put("/:id", tiendasController.actualizarTienda);
+router.put("/:id", actualizarTienda);
 
 // DELETE (baja lógica)
-router.delete("/:id", tiendasController.eliminarTienda);
+router.delete("/:id", eliminarTienda);
 
-module.exports = router;
+export default router;

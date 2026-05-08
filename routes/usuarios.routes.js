@@ -1,21 +1,28 @@
-const express = require("express");
+import express from "express";
+// Importamos las funciones asíncronas con extensión .js
+import {
+    obtenerUsuarios,
+    obtenerUsuarioPorId,
+    crearUsuario,
+    actualizarUsuario,
+    eliminarUsuario
+} from "../controllers/usuarios.controller.js";
+
 const router = express.Router();
 
-const usuarioController = require("../controllers/usuarios.controller.js");
-
 // GET ALL
-router.get("/", usuarioController.obtenerUsuarios);
+router.get("/", obtenerUsuarios);
 
 // GET BY ID
-router.get("/:id", usuarioController.obtenerUsuarioPorId);
+router.get("/:id", obtenerUsuarioPorId);
 
 // CREATE
-router.post("/", usuarioController.crearUsuario);
+router.post("/", crearUsuario);
 
 // UPDATE
-router.put("/:id", usuarioController.actualizarUsuario);
+router.put("/:id", actualizarUsuario);
 
 // DELETE (baja lógica)
-router.delete("/:id", usuarioController.eliminarUsuario);
+router.delete("/:id", eliminarUsuario);
 
-module.exports = router;
+export default router;

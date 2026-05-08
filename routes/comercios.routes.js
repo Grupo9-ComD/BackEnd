@@ -1,18 +1,29 @@
-const express = require("express");
+import express from "express";
+
+// Importamos todas las funciones del controlador usando la sintaxis moderna
+import {
+    obtenerComerciosVista,
+    formularioNuevoComercio,
+    obtenerComercioVista,
+    obtenerComercios,
+    obtenerComercioPorId,
+    crearComercio,
+    actualizarComercio,
+    eliminarComercio
+} from "../controllers/comercios.controller.js";
+
 const router = express.Router();
 
-const comercioController = require("../controllers/comercios.controller.js");
-
 // ---------- VISTAS PUG ----------
-router.get("/vista", comercioController.obtenerComerciosVista);
-router.get("/nuevo", comercioController.formularioNuevoComercio);
-router.get("/vista/:id", comercioController.obtenerComercioVista);
+router.get("/vista", obtenerComerciosVista);
+router.get("/nuevo", formularioNuevoComercio);
+router.get("/vista/:id", obtenerComercioVista);
 
 // ---------- API JSON ----------
-router.get("/", comercioController.obtenerComercios);
-router.get("/:id", comercioController.obtenerComercioPorId);
-router.post("/", comercioController.crearComercio);
-router.put("/:id", comercioController.actualizarComercio);
-router.delete("/:id", comercioController.eliminarComercio);
+router.get("/", obtenerComercios);
+router.get("/:id", obtenerComercioPorId);
+router.post("/", crearComercio);
+router.put("/:id", actualizarComercio);
+router.delete("/:id", eliminarComercio);
 
-module.exports = router;
+export default router;

@@ -1,21 +1,28 @@
-const express = require("express");
+import express from "express";
+// Importamos las funciones asíncronas con extensión .js
+import {
+    obtenerTransacciones,
+    obtenerTransaccionPorId,
+    crearTransaccion,
+    actualizarTransaccion,
+    eliminarTransaccion
+} from "../controllers/transacciones.controller.js";
+
 const router = express.Router();
 
-const transaccionController = require("../controllers/transacciones.controller.js");
-
 // GET ALL
-router.get("/", transaccionController.obtenerTransacciones);
+router.get("/", obtenerTransacciones);
 
 // GET BY ID
-router.get("/:id", transaccionController.obtenerTransaccionPorId);
+router.get("/:id", obtenerTransaccionPorId);
 
 // CREATE
-router.post("/", transaccionController.crearTransaccion);
+router.post("/", crearTransaccion);
 
 // UPDATE
-router.put("/:id", transaccionController.actualizarTransaccion);
+router.put("/:id", actualizarTransaccion);
 
 // DELETE
-router.delete("/:id", transaccionController.eliminarTransaccion);
+router.delete("/:id", eliminarTransaccion);
 
-module.exports = router;
+export default router;

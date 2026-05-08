@@ -1,168 +1,106 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs/promises"; 
+import path from "path";
+import { fileURLToPath } from "url";
+import Usuario from "../models/usuario.model.js";
 
-const Usuario = require("../models/usuario.model");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rutaArchivo = path.join(__dirname, "../data/usuarios.json"); 
 
-const rutaArchivo = path.join(__dirname, "../data/usuarios.json");
-
-
-// LEER ARCHIVO
-const leerUsuarios = () => {
-    const data = fs.readFileSync(rutaArchivo, "utf-8");
-    return JSON.parse(data);
-};
-
-
-// GUARDAR ARCHIVO
-const guardarUsuarios = (usuarios) => {
-    fs.writeFileSync(
-        rutaArchivo,
-        JSON.stringify(usuarios, null, 2)
-    );
-};
-
-
-// GET ALL
-const obtenerUsuarios = (req, res) => {
-    const usuarios = leerUsuarios();
-    res.json(usuarios);
-};
-
-
-// GET BY ID
-const obtenerUsuarioPorId = (req, res) => {
-
-    const usuarios = leerUsuarios();
-
-    const id = parseInt(req.params.id);
-
-    const usuario = usuarios.find(
-        u => u.id === id
-    );
-
-    if (!usuario) {
-        return res.status(404).json({
-            mensaje: "Usuario no encontrado"
-        });
+const leerUsuarios = async () => { 
+    try {
+        const data = await fs.readFile(rutaArchivo, "utf-8"); 
+        return JSON.parse(data); 
+    } catch (error) {
+        return []; 
     }
-
-    res.json(usuario);
 };
 
-
-// CREATE
-const crearUsuario = (req, res) => {
-
-    const usuarios = leerUsuarios();
-
-    const {
-        nombre,
-        email,
-        rol,
-        estado
-    } = req.body;
-
-    const nuevoId =
-        usuarios.length > 0
-            ? usuarios[usuarios.length - 1].id + 1
-            : 1;
-
-    const nuevoUsuario = new Usuario(
-        nuevoId,
-        nombre,
-        email,
-        rol || "Administrador",
-        estado || "Activo"
-    );
-
-    usuarios.push(nuevoUsuario);
-
-    guardarUsuarios(usuarios);
-
-    res.status(201).json({
-        mensaje: "Usuario creado correctamente",
-        usuario: nuevoUsuario
-    });
+const guardarUsuarios = async (usuarios) => { 
+    await fs.writeFile(rutaArchivo, JSON.stringify(usuarios, null, 2)); 
 };
 
-
-// UPDATE
-const actualizarUsuario = (req, res) => {
-
-    const usuarios = leerUsuarios();
-
-    const id = parseInt(req.params.id);
-
-    const usuario = usuarios.find(
-        u => u.id === id
-    );
-
-    if (!usuario) {
-        return res.status(404).json({
-            mensaje: "Usuario no encontrado"
-        });
+// GET ALL 
+const obtenerUsuarios = async (req, res) => { 
+    try {
+        const usuarios = await leerUsuarios();
+        res.json(usuarios); 
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los usuarios" });
     }
-
-    const {
-        nombre,
-        email,
-        rol,
-        estado
-    } = req.body;
-
-    usuario.nombre =
-        nombre ?? usuario.nombre;
-
-    usuario.email =
-        email ?? usuario.email;
-
-    usuario.rol =
-        rol ?? usuario.rol;
-
-    usuario.estado =
-        estado ?? usuario.estado;
-
-    guardarUsuarios(usuarios);
-
-    res.json({
-        mensaje: "Usuario actualizado correctamente",
-        usuario
-    });
 };
 
-
-// DELETE (BAJA LOGICA)
-const eliminarUsuario = (req, res) => {
-
-    const usuarios = leerUsuarios();
-
-    const id = parseInt(req.params.id);
-
-    const usuario = usuarios.find(
-        u => u.id === id
-    );
-
-    if (!usuario) {
-        return res.status(404).json({
-            mensaje: "Usuario no encontrado"
-        });
+// GET BY ID 
+const obtenerUsuarioPorId = async (req, res) => {
+    try {
+        const usuarios = await leerUsuarios();
+        const idBuscado = parseInt(req.params.id);
+        const usuario = usuarios.find(u => u.id === idBuscado);
+        
+        if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener el usuario" });
     }
-
-    usuario.estado = "Inactivo";
-
-    guardarUsuarios(usuarios);
-
-    res.json({
-        mensaje: "Usuario dado de baja correctamente",
-        usuario
-    });
 };
 
+// CREATE 
+const crearUsuario = async (req, res) => {
+    try {
+        const usuarios = await leerUsuarios();
+        const nuevoId = usuarios.length > 0 ? Math.max(...usuarios.map(u => u.id)) + 1 : 1;
+        
+        // POO al instanciar
+        const nuevoUsuario = new Usuario(
+            nuevoId,
+            req.body.nombre_empleado,
+            req.body.email_corporativo,
+            "Activo" // Estado por defecto
+        );
 
-module.exports = {
-    obtenerUsuarios,
-    obtenerUsuarioPorId,
-    crearUsuario,
-    actualizarUsuario,
-    eliminarUsuario
+        usuarios.push(nuevoUsuario);
+        await guardarUsuarios(usuarios);
+        
+        res.status(201).json({ mensaje: "Usuario creado exitosamente", usuario: nuevoUsuario });
+    } catch (error) {
+         res.status(500).json({ error: "Error interno al crear usuario" });
+    }
 };
+
+// UPDATE 
+const actualizarUsuario = async (req, res) => {
+    try {
+        const usuarios = await leerUsuarios();
+        const idBuscado = parseInt(req.params.id);
+        const index = usuarios.findIndex(u => u.id === idBuscado);
+
+        if (index === -1) return res.status(404).json({ error: "Usuario no encontrado para actualizar" });
+
+        usuarios[index] = { ...usuarios[index], ...req.body, id: idBuscado };
+        await guardarUsuarios(usuarios);
+
+        res.json({ mensaje: "Usuario actualizado", usuario: usuarios[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar usuario" });
+    }
+};
+
+// DELETE (Baja lógica)
+const eliminarUsuario = async (req, res) => {
+    try {
+        const usuarios = await leerUsuarios();
+        const idBuscado = parseInt(req.params.id);
+        const index = usuarios.findIndex(u => u.id === idBuscado);
+
+        if (index === -1) return res.status(404).json({ error: "Usuario no encontrado para dar de baja" });
+
+        usuarios[index].estado = "Inactivo"; // Baja lógica
+        await guardarUsuarios(usuarios);
+
+        res.json({ mensaje: "Usuario dado de baja lógicamente", usuario: usuarios[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar usuario" });
+    }
+};
+
+export { obtenerUsuarios, obtenerUsuarioPorId, crearUsuario, actualizarUsuario, eliminarUsuario };

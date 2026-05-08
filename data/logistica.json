@@ -36,5 +36,13 @@
     "empresa_transporte": "Lolo S.A.",
     "direccion_destino": "Av. Corrientes 1234, Buenos Aires",
     "fecha_creacion": "2026-04-25T17:30:14.183Z"
+  },
+  {
+    "id": 6,
+    "transaccion_id": 1,
+    "estado_envio": "Envío Rápido S.A.",
+    "empresa_transporte": "Av. Corrientes 1234, Buenos Aires",
+    "direccion_destino": "Pendiente",
+    "fecha_creacion": "Activa"
   }
 ]

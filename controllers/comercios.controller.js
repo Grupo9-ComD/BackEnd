@@ -1,209 +1,148 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs/promises"; 
+import path from "path";
+import { fileURLToPath } from "url";
+import Comercio from "../models/comercio.model.js";
 
-const Comercio = require("../models/comercio.model");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rutaArchivo = path.join(__dirname, "../data/comercios.json"); 
 
-const rutaArchivo = path.join(__dirname, "../data/comercios.json");
-const rutaTiendas = path.join(__dirname, "../data/tiendas.json");
-
-
-// FUNCION LEER ARCHIVO
-const leerComercios = () => {
-    const data = fs.readFileSync(rutaArchivo, "utf-8");
-    return JSON.parse(data);
-};
-
-
-// FUNCION GUARDAR ARCHIVO
-const guardarComercios = (comercios) => {
-    fs.writeFileSync(
-        rutaArchivo,
-        JSON.stringify(comercios, null, 2)
-    );
-};
-
-
-// GET ALL
-const obtenerComercios = (req, res) => {
-    const comercios = leerComercios();
-    res.json(comercios);
-};
-
-const obtenerComerciosVista = (req, res) => {
-    const comercios = leerComercios();
-    res.render("comercios/list", { comercios });
-};
-
-
-// GET BY ID
-const obtenerComercioPorId = (req, res) => {
-    const comercios = leerComercios();
-
-    const id = parseInt(req.params.id);
-
-    const comercio = comercios.find(c => c.id === id);
-
-    if (!comercio) {
-        return res.status(404).json({
-            mensaje: "Comercio no encontrado"
-        });
+const leerComercios = async () => { 
+    try {
+        const data = await fs.readFile(rutaArchivo, "utf-8"); 
+        return JSON.parse(data); 
+    } catch (error) {
+        return [];
     }
-
-    res.json(comercio);
 };
 
-const obtenerComercioVista = (req, res) => {
-    const comercios = leerComercios();
+const guardarComercios = async (comercios) => { 
+    await fs.writeFile(rutaArchivo, JSON.stringify(comercios, null, 2)); 
+};
 
-    const id = parseInt(req.params.id);
-    const comercio = comercios.find(c => c.id === id);
-
-    if (!comercio) {
-        return res.status(404).send("Comercio no encontrado");
+// GET ALL 
+const obtenerComercios = async (req, res) => { 
+    try {
+        const comercios = await leerComercios(); 
+        res.json(comercios); 
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los comercios" });
     }
-
-    res.render("comercios/detail", { comercio });
 };
 
-
-// CREATE
-const crearComercio = (req, res) => {
-
-    const comercios = leerComercios();
-
-    const nuevoId =
-        comercios.length > 0
-            ? comercios[comercios.length - 1].id + 1
-            : 1;
-
-    const {
-        nombre_comercio,
-        cuit,
-        email_contacto,
-        plan_suscripcion,
-        comision_variable,
-        estado
-    } = req.body;
-
-    const nuevoComercio = new Comercio(
-        nuevoId,
-        nombre_comercio,
-        cuit,
-        email_contacto,
-        plan_suscripcion,
-        comision_variable,
-        estado || "Activo"
-    );
-
-    comercios.push(nuevoComercio);
-
-    guardarComercios(comercios);
-
-    res.status(201).json({
-        mensaje: "Comercio creado correctamente",
-        comercio: nuevoComercio
-    });
-};
-
-const formularioNuevoComercio = (req, res) => {
-    res.render("comercios/form");
-};
-
-
-
-
-// UPDATE
-const actualizarComercio = (req, res) => {
-
-    const comercios = leerComercios();
-
-    const id = parseInt(req.params.id);
-
-    const comercio = comercios.find(c => c.id === id);
-
-    if (!comercio) {
-        return res.status(404).json({
-            mensaje: "Comercio no encontrado"
-        });
-    }
-
-    const {
-        nombre_comercio,
-        cuit,
-        email_contacto,
-        plan_suscripcion,
-        comision_variable,
-        estado
-    } = req.body;
-
-    comercio.nombre_comercio = nombre_comercio ?? comercio.nombre_comercio;
-    comercio.cuit = cuit ?? comercio.cuit;
-    comercio.email_contacto = email_contacto ?? comercio.email_contacto;
-    comercio.plan_suscripcion = plan_suscripcion ?? comercio.plan_suscripcion;
-    comercio.comision_variable = comision_variable ?? comercio.comision_variable;
-    comercio.estado = estado ?? comercio.estado;
-
-    guardarComercios(comercios);
-
-    res.json({
-        mensaje: "Comercio actualizado correctamente",
-        comercio
-    });
-};
-
-
-// DELETE (BAJA LOGICA)
-const eliminarComercio = (req, res) => {
-
-    const comercios = leerComercios();
-
-    const id = parseInt(req.params.id);
-
-    const comercio = comercios.find(c => c.id === id);
-
-    if (!comercio) {
-        return res.status(404).json({
-            mensaje: "Comercio no encontrado"
-        });
-    }
-
-    // VALIDAR TIENDAS ACTIVAS
-    if (fs.existsSync(rutaTiendas)) {
-
-        const tiendas = JSON.parse(
-            fs.readFileSync(rutaTiendas, "utf-8")
-        );
-
-        const tieneTiendasActivas = tiendas.some(
-            t => t.comercio_id === id && t.estado === "Activa"
-        );
-
-        if (tieneTiendasActivas) {
-            return res.status(400).json({
-                mensaje: "No se puede desactivar el comercio porque tiene tiendas activas"
-            });
+// GET BY ID 
+const obtenerComercioPorId = async (req, res) => { 
+    try {
+        const comercios = await leerComercios();
+        const idBuscado = parseInt(req.params.id);
+        const comercio = comercios.find(c => c.id === idBuscado);
+        
+        if (!comercio) {
+            return res.status(404).json({ error: "Comercio no encontrado" });
         }
+        res.json(comercio);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener el comercio" });
     }
-
-    comercio.estado = "Inactivo";
-
-    guardarComercios(comercios);
-
-    res.json({
-        mensaje: "Comercio dado de baja correctamente",
-        comercio
-    });
 };
 
+// CREATE 
+const crearComercio = async (req, res) => {
+    try {
+        const comercios = await leerComercios();
+        // ID autoincremental
+        const nuevoId = comercios.length > 0 ? Math.max(...comercios.map(c => c.id)) + 1 : 1;
+        
+        // Usamos POO instanciando el modelo
+        const nuevoComercio = new Comercio(
+            nuevoId,
+            req.body.nombre_comercio,
+            req.body.cuit,
+            req.body.email_contacto,
+            req.body.plan_suscripcion,
+            req.body.comision_variable,
+            "Activo" // Estado por defecto
+        );
 
-module.exports = {
-    obtenerComercios,
-    obtenerComercioPorId,
-    crearComercio,
-    actualizarComercio,
-    eliminarComercio,
-    obtenerComercioVista,
-    obtenerComerciosVista,
-    formularioNuevoComercio
+        comercios.push(nuevoComercio);
+        await guardarComercios(comercios);
+        
+        res.status(201).json({ mensaje: "Comercio creado con éxito", comercio: nuevoComercio });
+    } catch (error) {
+        res.status(500).json({ error: "Error al crear el comercio" });
+    }
+};
 
+// UPDATE 
+const actualizarComercio = async (req, res) => {
+    try {
+        const comercios = await leerComercios();
+        const idBuscado = parseInt(req.params.id);
+        const index = comercios.findIndex(c => c.id === idBuscado);
+
+        if (index === -1) {
+            return res.status(404).json({ error: "Comercio no encontrado para actualizar" });
+        }
+
+        // Actualizamos las propiedades
+        comercios[index] = { ...comercios[index], ...req.body, id: idBuscado };
+        await guardarComercios(comercios);
+
+        res.json({ mensaje: "Comercio actualizado con éxito", comercio: comercios[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar el comercio" });
+    }
+};
+
+// DELETE (BAJA LOGICA) 
+const eliminarComercio = async (req, res) => {
+    try {
+        const comercios = await leerComercios();
+        const idBuscado = parseInt(req.params.id);
+        const index = comercios.findIndex(c => c.id === idBuscado);
+
+        if (index === -1) {
+            return res.status(404).json({ error: "Comercio no encontrado para dar de baja" });
+        }
+
+        // Aplicamos la baja lógica cambiando el estado
+        comercios[index].estado = "Inactivo";
+        await guardarComercios(comercios);
+
+        res.json({ mensaje: "Comercio dado de baja lógica exitosamente", comercio: comercios[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar el comercio" });
+    }
+};
+
+// VISTAS FRONTEND
+const obtenerComerciosVista = async (req, res) => { 
+    try {
+        const comercios = await leerComercios(); 
+        res.render("comercios/list", { comercios }); 
+    } catch (error) {
+        res.status(500).send("Error al renderizar la vista de comercios");
+    }
+};
+
+const obtenerComercioVista = async (req, res) => { 
+    try {
+        const comercios = await leerComercios();
+        const idBuscado = parseInt(req.params.id);
+        const comercio = comercios.find(c => c.id === idBuscado);
+        if (!comercio) return res.status(404).send("Comercio no encontrado");
+        
+        res.render("comercios/detail", { comercio });
+    } catch (error) {
+        res.status(500).send("Error al renderizar la vista del comercio");
+    }
+};
+
+const formularioNuevoComercio = (req, res) => { 
+    res.render("comercios/form"); 
+};
+
+export { 
+    obtenerComercios, obtenerComercioPorId, crearComercio, actualizarComercio, eliminarComercio, 
+    obtenerComercioVista, obtenerComerciosVista, formularioNuevoComercio
 };

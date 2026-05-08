@@ -1,160 +1,124 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs/promises"; 
+import path from "path";
+import { fileURLToPath } from "url";
+import Logistica from "../models/logistica.model.js";
 
-const Logistica = require("../models/logistica.model");
-
-const rutaArchivo = path.join(__dirname, "../data/logistica.json");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rutaArchivo = path.join(__dirname, "../data/logistica.json"); 
 const rutaTransacciones = path.join(__dirname, "../data/transacciones.json");
 
-
-// LEER ARCHIVO
-const leerOperaciones = () => {
-    const data = fs.readFileSync(rutaArchivo, "utf-8");
-    return JSON.parse(data);
-};
-
-
-// GUARDAR ARCHIVO
-const guardarOperaciones = (operaciones) => {
-    fs.writeFileSync(
-        rutaArchivo,
-        JSON.stringify(operaciones, null, 2)
-    );
-};
-
-
-// GET ALL
-const obtenerLogistica = (req, res) => {
-    const operaciones = leerOperaciones();
-    res.json(operaciones);
-};
-
-
-// GET BY ID
-const obtenerOperacionPorId = (req, res) => {
-
-    const operaciones = leerOperaciones();
-
-    const id = parseInt(req.params.id);
-
-    const operacion = operaciones.find(o => o.id === id);
-
-    if (!operacion) {
-        return res.status(404).json({
-            mensaje: "Operación logística no encontrada"
-        });
-    }
-
-    res.json(operacion);
-};
-
-
-// CREATE
-const crearOperacion = (req, res) => {
+const leerOperaciones = async () => { 
     try {
-        // 1. Leemos el archivo de transacciones para hacer la validación
-        const dataTransacciones = fs.readFileSync(rutaTransacciones, "utf-8");
-        const transacciones = JSON.parse(dataTransacciones);
+        const data = await fs.readFile(rutaArchivo, "utf-8"); 
+        return JSON.parse(data);
+    } catch (error) { return []; }
+};
 
-        // 2. Convertimos el dato que llega a número con parseInt
-        const idTransaccionBuscado = parseInt(req.body.transaccion_id);
+const leerTransacciones = async () => { 
+    try {
+        const data = await fs.readFile(rutaTransacciones, "utf-8"); 
+        return JSON.parse(data);
+    } catch (error) { return []; }
+};
 
-        // 3. Buscamos si la transacción realmente existe
-        const transaccionExiste = transacciones.find(t => t.id === idTransaccionBuscado);
+const guardarOperaciones = async (operaciones) => { 
+    await fs.writeFile(rutaArchivo, JSON.stringify(operaciones, null, 2)); 
+};
 
-        if (!transaccionExiste) {
-            // Si NO existe, bloqueamos la acción y devolvemos 400 Bad Request
-            return res.status(400).json({ error: "La transacción indicada no existe" });
+// GET ALL 
+const obtenerLogistica = async (req, res) => { 
+    try {
+        const operaciones = await leerOperaciones(); 
+        res.json(operaciones); 
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener logística" });
+    }
+};
+
+// GET BY ID 
+const obtenerOperacionPorId = async (req, res) => {
+    try {
+        const operaciones = await leerOperaciones();
+        const idBuscado = parseInt(req.params.id);
+        const operacion = operaciones.find(o => o.id === idBuscado);
+        
+        if (!operacion) return res.status(404).json({ error: "Operación no encontrada" });
+        res.json(operacion);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener operación" });
+    }
+};
+
+// CREATE 
+const crearOperacion = async (req, res) => {
+    try {
+        const transacciones = await leerTransacciones();
+        const operaciones = await leerOperaciones();
+        
+        const idTransaccionAsociada = parseInt(req.body.id_transaccion);
+        const transaccionExiste = transacciones.find(t => t.id === idTransaccionAsociada);
+
+        // Validación cruzada
+        if (!transaccionExiste || transaccionExiste.estado === "Inactiva") {
+            return res.status(400).json({ error: "La transacción indicada no existe o está inactiva." });
         }
 
-        // 4. Si la transacción SÍ existe, continuamos con la creación del envío
-        const operaciones = leerOperaciones();
-        const nuevoId = operaciones.length > 0 ? operaciones[operaciones.length - 1].id + 1 : 1;
+        const nuevoId = operaciones.length > 0 ? Math.max(...operaciones.map(o => o.id)) + 1 : 1;
 
-        // Instanciamos el objeto usando la clase Logistica
+        // POO al instanciar
         const nuevaOperacion = new Logistica(
             nuevoId,
-            idTransaccionBuscado,
-            "Pendiente de despacho", //asignación automática
+            idTransaccionAsociada,
             req.body.empresa_transporte,
             req.body.direccion_destino,
-            new Date().toISOString()
+            "Pendiente", // Estado del envío
+            "Activa" // Estado lógico del registro
         );
 
         operaciones.push(nuevaOperacion);
-        guardarOperaciones(operaciones); // Guardamos en logistica.json
+        await guardarOperaciones(operaciones);
 
-        // 5. Devolvemos el código de éxito
-        res.status(201).json(nuevaOperacion);
-
+        res.status(201).json({ mensaje: "Operación logística creada", operacion: nuevaOperacion });
     } catch (error) {
-        res.status(500).json({ error: "Error interno al crear el registro de logística" });
+        res.status(500).json({ error: "Error al crear operación" });
     }
 };
 
-// UPDATE
-const actualizarOperacion = (req, res) => {
+// UPDATE 
+const actualizarOperacion = async (req, res) => {
+    try {
+        const operaciones = await leerOperaciones();
+        const idBuscado = parseInt(req.params.id);
+        const index = operaciones.findIndex(o => o.id === idBuscado);
 
-    const operaciones = leerOperaciones();
+        if (index === -1) return res.status(404).json({ error: "Operación no encontrada" });
 
-    const id = parseInt(req.params.id);
+        operaciones[index] = { ...operaciones[index], ...req.body, id: idBuscado };
+        await guardarOperaciones(operaciones);
 
-    const operacion = operaciones.find(o => o.id === id);
-
-    if (!operacion) {
-        return res.status(404).json({
-            mensaje: "Operación logística no encontrada"
-        });
+        res.json({ mensaje: "Operación actualizada", operacion: operaciones[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar" });
     }
-
-    const {
-        estado_envio,
-        empresa_transporte,
-        direccion_destino
-    } = req.body;
-
-    operacion.estado_envio = estado_envio ?? operacion.estado_envio;
-    operacion.empresa_transporte = empresa_transporte ?? operacion.empresa_transporte;
-    operacion.direccion_destino = direccion_destino ?? operacion.direccion_destino;
-
-    guardarOperaciones(operaciones);
-
-    res.json({
-        mensaje: "Operación logística actualizada correctamente",
-        logistica: operacion
-    });
 };
 
+// DELETE 
+const eliminarOperacion = async (req, res) => {
+    try {
+        const operaciones = await leerOperaciones();
+        const idBuscado = parseInt(req.params.id);
+        const index = operaciones.findIndex(o => o.id === idBuscado);
 
-// DELETE
-const eliminarOperacion = (req, res) => {
+        if (index === -1) return res.status(404).json({ error: "Operación no encontrada" });
 
-    const operaciones = leerOperaciones();
+        operaciones[index].estado_logico = "Inactiva"; // Baja Lógica
+        await guardarOperaciones(operaciones);
 
-    const id = parseInt(req.params.id);
-
-    const nuevasOperaciones = operaciones.filter(
-        o => o.id !== id
-    );
-
-    if (operaciones.length === nuevasOperaciones.length) {
-        return res.status(404).json({
-            mensaje: "Operación logística no encontrada"
-        });
+        res.json({ mensaje: "Operación dada de baja lógicamente", operacion: operaciones[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar" });
     }
-
-    guardarOperaciones(nuevasOperaciones);
-
-    res.json({
-        mensaje: "Operación logística eliminada correctamente"
-    });
 };
 
-
-module.exports = {
-    obtenerLogistica,
-    obtenerOperacionPorId,
-    crearOperacion,
-    actualizarOperacion,
-    eliminarOperacion
-};
+export { obtenerLogistica, obtenerOperacionPorId, crearOperacion, actualizarOperacion, eliminarOperacion };

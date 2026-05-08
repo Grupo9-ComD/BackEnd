@@ -40,5 +40,12 @@
     "comercio_id": 1,
     "ubicacion": "Córdoba",
     "estado": "Activa"
+  },
+  {
+    "id": 7,
+    "nombre": "Sucursal Centro",
+    "comercio_id": 1,
+    "ubicacion": "Córdoba",
+    "estado": "Activa"
   }
 ]

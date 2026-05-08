@@ -247,5 +247,33 @@
     },
     "estado_conciliacion": "Inconsistencia Detectada",
     "observacion": "Alerta: La pasarela informó una diferencia de $NaN (NaN%)"
+  },
+  {
+    "id": 19,
+    "tienda_id": 1,
+    "comercio_id": null,
+    "fecha": "2026-05-04T21:49:03.976Z",
+    "monto_total": 10000,
+    "monto_informado_pasarela": 10000,
+    "split_pagos": {
+      "comision_techretail": 500,
+      "ingreso_comercio": 9500
+    },
+    "estado_conciliacion": "Conciliado OK",
+    "observacion": "Sin diferencias en el flujo monetario"
+  },
+  {
+    "id": 20,
+    "tienda_id": 1,
+    "comercio_id": null,
+    "fecha": "2026-05-04T22:10:16.023Z",
+    "monto_total": 10000,
+    "monto_informado_pasarela": 10000,
+    "split_pagos": {
+      "comision_techretail": 500,
+      "ingreso_comercio": 9500
+    },
+    "estado_conciliacion": "Conciliado OK",
+    "observacion": "Sin diferencias en el flujo monetario"
   }
 ]

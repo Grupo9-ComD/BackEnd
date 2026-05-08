@@ -14,4 +14,4 @@ class Estadistica {
     }
 }
 
-module.exports = Estadistica;
+exports default Estadistica;

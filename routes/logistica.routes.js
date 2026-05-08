@@ -1,21 +1,27 @@
-const express = require("express");
+import express from "express";
+import {
+    obtenerLogistica,
+    obtenerOperacionPorId,
+    crearOperacion,
+    actualizarOperacion,
+    eliminarOperacion
+} from "../controllers/logistica.controller.js";
+
 const router = express.Router();
 
-const logisticaController = require("../controllers/logistica.controller.js");
-
 // GET todas las operaciones de logística
-router.get("/", logisticaController.obtenerLogistica);
+router.get("/", obtenerLogistica);
 
 // GET una operación específica por ID
-router.get("/:id", logisticaController.obtenerOperacionPorId);
+router.get("/:id", obtenerOperacionPorId);
 
 // POST nueva operación de logística
-router.post("/", logisticaController.crearOperacion);
+router.post("/", crearOperacion);
 
-// PUT modificar/actualizar una operación existente (El que reemplaza al "PUSH")
-router.put("/:id", logisticaController.actualizarOperacion);
+// PUT modificar/actualizar una operación existente
+router.put("/:id", actualizarOperacion);
 
 // DELETE eliminar o dar de baja una operación
-router.delete("/:id", logisticaController.eliminarOperacion);
+router.delete("/:id", eliminarOperacion);
 
-module.exports = router;
+export default router;

@@ -18,4 +18,4 @@ class Comercio {
     }
 }
 
-module.exports = Comercio;
+export default Comercio;

@@ -14,4 +14,4 @@ class Tienda {
     }
 }
 
-module.exports = Tienda;
+export default Tienda;

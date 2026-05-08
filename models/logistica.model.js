@@ -16,4 +16,4 @@ class Logistica {
     }
 }
 
-module.exports = Logistica;
+export default Logistica;

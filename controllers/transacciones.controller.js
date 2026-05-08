@@ -1,117 +1,137 @@
-const fs = require("fs"); 
-const path = require("path");
+import fs from "fs/promises"; 
+import path from "path";
+import { fileURLToPath } from "url";
+import Transaccion from "../models/transaccion.model.js";
 
-const Transaccion = require("../models/transaccion.model");
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const rutaArchivo = path.join(__dirname, "../data/transacciones.json"); 
 const rutaTiendas = path.join(__dirname, "../data/tiendas.json"); 
-const rutaComercios = path.join(__dirname, "../data/comercios.json");
 
-// LEER ARCHIVO 
-const leerTransacciones = () => { 
-    const data = fs.readFileSync(rutaArchivo, "utf-8"); 
-    return JSON.parse(data); 
+const leerTransacciones = async () => { 
+    try {
+        const data = await fs.readFile(rutaArchivo, "utf-8"); 
+        return JSON.parse(data);
+    } catch (error) { return []; }
 };
 
-// leer tiendas 
-const leerTiendas = () => { 
-    const data = fs.readFileSync(rutaTiendas, "utf-8"); 
-    return JSON.parse(data); 
+const leerTiendas = async () => { 
+    try {
+        const data = await fs.readFile(rutaTiendas, "utf-8"); 
+        return JSON.parse(data);
+    } catch (error) { return []; }
 };
 
-// GUARDAR ARCHIVO 
-const guardarTransacciones = (transacciones) => { 
-    fs.writeFileSync(rutaArchivo, JSON.stringify(transacciones, null, 2)); 
+const guardarTransacciones = async (transacciones) => { 
+    await fs.writeFile(rutaArchivo, JSON.stringify(transacciones, null, 2)); 
 };
 
 // GET ALL 
-const obtenerTransacciones = (req, res) => { 
-    const transacciones = leerTransacciones(); 
-    res.json(transacciones); 
+const obtenerTransacciones = async (req, res) => { 
+    try {
+        const transacciones = await leerTransacciones();
+        res.json(transacciones); 
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener las transacciones" });
+    }
 };
 
 // GET BY ID 
-const obtenerTransaccionPorId = (req, res) => {
-
+const obtenerTransaccionPorId = async (req, res) => {
+    try {
+        const transacciones = await leerTransacciones();
+        const idBuscado = parseInt(req.params.id);
+        const transaccion = transacciones.find(t => t.id === idBuscado);
+        
+        if (!transaccion) return res.status(404).json({ error: "Transacción no encontrada" });
+        res.json(transaccion);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener transacción" });
+    }
 };
 
 // CREATE 
-const crearTransaccion = (req, res) => { 
-    // 1. Traemos las tiendas a la memoria y validamos
-    const tiendas = leerTiendas(); 
-    const idTiendaBuscada = parseInt(req.body.id_tienda); 
-    const tiendaExiste = tiendas.find(t => t.id === idTiendaBuscada);
+const crearTransaccion = async (req, res) => { 
+    try {
+        const transacciones = await leerTransacciones();
+        const tiendas = await leerTiendas(); 
+        
+        const idTiendaBuscada = parseInt(req.body.id_tienda); 
+        const tiendaExiste = tiendas.find(t => t.id === idTiendaBuscada);
+        
+        if (!tiendaExiste || tiendaExiste.estado === "Inactiva") {
+            return res.status(400).json({ error: "La tienda indicada no existe o está inactiva." });
+        }
 
-    // Si la tienda no existe, frenamos todo
-    if (!tiendaExiste) {
-        return res.status(400).json({ error: "La tienda indicada no existe en el sistema" });
+        const montoTotal = parseFloat(req.body.monto_total);
+        const montoPasarela = parseFloat(req.body.monto_informado_pasarela);
+
+        // Lógica de Negocio: Split y Conciliación
+        const comisionTechRetail = montoTotal * 0.05; 
+        const ingresoComercio = montoTotal - comisionTechRetail;
+
+        let estadoConciliacion = montoTotal === montoPasarela ? "Conciliado OK" : "Inconsistencia Detectada";
+        let observacion = montoTotal === montoPasarela ? "Sin diferencias en el flujo monetario" : "El monto real difiere de lo informado por la pasarela";
+
+        const nuevoId = transacciones.length > 0 ? Math.max(...transacciones.map(t => t.id)) + 1 : 1;
+
+        // POO al instanciar
+        const nuevaTransaccion = new Transaccion(
+            nuevoId,
+            idTiendaBuscada,
+            tiendaExiste.id_comercio || null, 
+            new Date().toISOString(),
+            montoTotal,
+            montoPasarela,
+            { comision_techretail: comisionTechRetail, ingreso_comercio: ingresoComercio },
+            estadoConciliacion,
+            observacion,
+            "Activa"
+        );
+
+        transacciones.push(nuevaTransaccion);
+        await guardarTransacciones(transacciones);
+
+        res.status(201).json(nuevaTransaccion);
+    } catch (error) {
+        res.status(500).json({ error: "Error interno al crear transacción" });
     }
-
-    // ⭐ 2. INTERACCIÓN ENTRE MÓDULOS: Extraemos el comercio_id directamente de la tienda
-    const idComercioAsociado = tiendaExiste.comercio_id || tiendaExiste.id_comercio;
-
-    // 3. Lógica de conciliación y observación
-    const montoTotalReal = parseFloat(req.body.monto_total);
-    const montoPasarela = parseFloat(req.body.monto_informado_pasarela);
-
-    let estadoConciliacionCalculado = "Pendiente";
-    let observacionCalculada = "Sin observaciones";
-
-    if (montoTotalReal === montoPasarela) {
-        estadoConciliacionCalculado = "Conciliado OK";
-        observacionCalculada = "Sin diferencias en el flujo monetario";
-    } else {
-        estadoConciliacionCalculado = "Inconsistencia Detectada";
-        const diferencia = Math.abs(montoTotalReal - montoPasarela);
-        const porcentajeError = ((diferencia / montoTotalReal) * 100).toFixed(2);
-        observacionCalculada = `Alerta: La pasarela informó una diferencia de $${diferencia} (${porcentajeError}%)`;
-    }
-
-    // 4. Lógica del split de pagos (5% comisión)
-    const porcentajeComision = 0.05;
-    const comisionTechretail = parseFloat((montoTotalReal * porcentajeComision).toFixed(2));
-    const ingresoComercio = parseFloat((montoTotalReal - comisionTechretail).toFixed(2));
-
-    const splitPagosCalculado = {
-        comision_techretail: comisionTechretail,
-        ingreso_comercio: ingresoComercio
-    };
-
-    // 5. Creación de la nueva transacción
-    const transacciones = leerTransacciones();
-    
-    const nuevaTransaccion = new Transaccion(
-        transacciones.length > 0 ? transacciones[transacciones.length - 1].id + 1 : 1, // ID autoincremental
-        idTiendaBuscada, // ID de la tienda (enviado por Thunder Client)
-        idComercioAsociado, // ⭐ ID del comercio (obtenido automáticamente, ya no da null)
-        req.body.fecha || new Date().toISOString(), // Fecha
-        montoTotalReal, // Monto total
-        montoPasarela, // Monto informado por pasarela
-        splitPagosCalculado, // Objeto con el split
-        estadoConciliacionCalculado, // Estado calculado
-        observacionCalculada // Texto de observación
-    );
-
-    transacciones.push(nuevaTransaccion);
-    guardarTransacciones(transacciones);
-
-    res.status(201).json(nuevaTransaccion);
-}; 
+};
 
 // UPDATE 
-const actualizarTransaccion = (req, res) => {
+const actualizarTransaccion = async (req, res) => {
+    try {
+        const transacciones = await leerTransacciones();
+        const idBuscado = parseInt(req.params.id);
+        const index = transacciones.findIndex(t => t.id === idBuscado);
 
+        if (index === -1) return res.status(404).json({ error: "Transacción no encontrada" });
+
+        transacciones[index] = { ...transacciones[index], ...req.body, id: idBuscado };
+        await guardarTransacciones(transacciones);
+
+        res.json({ mensaje: "Transacción actualizada", transaccion: transacciones[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar" });
+    }
 };
 
 // DELETE 
-const eliminarTransaccion = (req, res) => {
+const eliminarTransaccion = async (req, res) => {
+    try {
+        const transacciones = await leerTransacciones();
+        const idBuscado = parseInt(req.params.id);
+        const index = transacciones.findIndex(t => t.id === idBuscado);
 
+        if (index === -1) return res.status(404).json({ error: "Transacción no encontrada" });
+
+        transacciones[index].estado = "Inactiva"; // Baja Lógica
+        await guardarTransacciones(transacciones);
+
+        res.json({ mensaje: "Transacción dada de baja lógicamente", transaccion: transacciones[index] });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar" });
+    }
 };
 
-module.exports = { 
-    obtenerTransacciones, 
-    obtenerTransaccionPorId, 
-    crearTransaccion, 
-    actualizarTransaccion, 
-    eliminarTransaccion 
-};
+export { obtenerTransacciones, obtenerTransaccionPorId, crearTransaccion, actualizarTransaccion, eliminarTransaccion };

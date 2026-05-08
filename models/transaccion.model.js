@@ -22,4 +22,4 @@ class Transaccion {
     }
 }
 
-module.exports = Transaccion;
+export default Transaccion;

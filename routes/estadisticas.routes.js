@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
+import { obtenerReporte } from "../controllers/estadisticas.controller.js";
+
 const router = express.Router();
 
-const estadisticaController = require("../controllers/estadisticas.controller.js");
+// GET a /estadisticas te devuelve el reporte automático
+router.get("/", obtenerReporte);
 
-// GET REPORTE HOT SALE
-router.get("/", estadisticaController.obtenerReporteHotSale);
-
-module.exports = router;
+export default router;

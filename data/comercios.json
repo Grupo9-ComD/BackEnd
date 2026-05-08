@@ -4,7 +4,7 @@
     "nombre_comercio": "Eco Zapatillas",
     "cuit": "30-12345678-9",
     "email_contacto": "ventas@ecozapatillas.com",
-    "plan_suscripcion": "Premium",
+    "plan_suscripcion": "Básico",
     "comision_variable": 0.05,
     "estado": "Activo"
   },
@@ -59,6 +59,15 @@
     "cuit": "30968558741",
     "email_contacto": "colitas@mail.com",
     "plan_suscripcion": "Basico",
+    "comision_variable": 0.05,
+    "estado": "Activo"
+  },
+  {
+    "id": 8,
+    "nombre_comercio": "Eco Zapatillas",
+    "cuit": "30-12345678-9",
+    "email_contacto": "contacto@ecozapatillas.com",
+    "plan_suscripcion": "Premium",
     "comision_variable": 0.05,
     "estado": "Activo"
   }
