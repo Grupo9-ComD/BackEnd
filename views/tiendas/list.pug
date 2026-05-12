@@ -1,0 +1,30 @@
+extends ../layout
+
+block content
+  .card.col-12
+    .card-header
+      div
+        h1 Sucursales (Tiendas)
+        p.muted Listado de tiendas virtuales registradas en TechRetail.
+      .actions
+        a.btn.btn-ghost(href="/") Volver al Panel
+
+    table
+      thead
+        tr
+          th ID
+          th Nombre de Sucursal
+          th ID Comercio
+          th Ubicación
+          th Estado
+      tbody
+        each tienda in tiendas
+          tr
+            td= tienda.id
+            td= tienda.nombre
+            td= tienda.comercio_id 
+            td= tienda.ubicacion
+            td= tienda.estado
+        else
+          tr
+            td(colspan="5") No hay tiendas registradas en este momento.

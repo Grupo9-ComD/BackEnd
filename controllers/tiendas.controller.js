@@ -131,6 +131,23 @@ const eliminarTienda = async (req, res) => {
     }
 };
 
-export { 
-    obtenerTiendas, obtenerTiendaPorId, crearTienda, actualizarTienda, eliminarTienda 
+
+// VISTA FRONTEND: Renderizar la lista de tiendas
+const obtenerTiendasVista = async (req, res) => { 
+    try {
+        const tiendas = await leerTiendas(); 
+        res.render("tiendas/list", { tiendas }); // Llama al archivo list.pug dentro de la carpeta tiendas
+    } catch (error) {
+        res.status(500).send("Error al renderizar la vista de tiendas");
+    }
 };
+
+// VISTA FRONTEND: Renderizar el formulario para crear una tienda nueva
+const formularioNuevaTienda = async (req, res) => {
+    try {
+        res.render("tiendas/form"); // Busca el archivo form.pug dentro de la carpeta tiendas
+    } catch (error) {
+        res.status(500).send("Error al cargar el formulario de tiendas");
+    }
+};
+export { obtenerTiendas, obtenerTiendaPorId, crearTienda, actualizarTienda, eliminarTienda, obtenerTiendasVista, formularioNuevaTienda };
