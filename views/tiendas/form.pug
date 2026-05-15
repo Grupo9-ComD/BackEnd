@@ -19,7 +19,7 @@ block content
         label(for="comercio_id") Comercio Dueño:
         select#comercio_id(name="comercio_id" required)
           option(value="" disabled selected) -- Seleccione un comercio --
-          each comercio in comercios
+          each comercio in (comercios || [])
             //- El usuario ve el nombre, pero el sistema guarda el _id
             option(value=comercio._id)= comercio.nombre_comercio
 

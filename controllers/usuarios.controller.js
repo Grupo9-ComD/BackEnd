@@ -33,7 +33,7 @@ const crearUsuario = async (req, res) => {
 
 const actualizarUsuario = async (req, res) => {
     try {
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         usuarioActualizado ? res.json(usuarioActualizado) : res.status(404).json({ error: "Usuario no encontrado" });
     } catch (error) {
         res.status(400).json({ error: "Error al actualizar" });

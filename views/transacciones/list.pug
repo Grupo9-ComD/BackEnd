@@ -22,4 +22,12 @@ block content
             td= transaccion.tienda_id
             td= transaccion.monto_total
             td= transaccion.monto_informado_pasarela
-            td= transaccion.estado_conciliacion
+            td
+              - const estado = (transaccion.estado_conciliacion ?? "").toString()
+              - const estadoLower = estado.toLowerCase()
+              if estadoLower.includes("ok")
+                span.badge.badge-success= estado
+              else if estadoLower.includes("incons") || estadoLower.includes("difer") || estadoLower.includes("problema")
+                span.badge.badge-danger= estado
+              else
+                span.badge= estado

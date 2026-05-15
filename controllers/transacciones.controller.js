@@ -94,7 +94,7 @@ const actualizarTransaccion = async (req, res) => {
         const transaccionActualizada = await Transaccion.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true } 
+            { new: true, runValidators: true } 
         );
         if (transaccionActualizada) {
             res.json(transaccionActualizada);
