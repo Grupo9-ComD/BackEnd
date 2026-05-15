@@ -150,8 +150,10 @@ const obtenerTransaccionVista = async (req, res) => {
 
 const formularioNuevaTransaccion = async (req, res) => {
     try {
-        // Traemos todas las tiendas activas para el select del formulario
-        const tiendas = await Tienda.find({ estado: "Activo" }).lean();
+        // Buscamos todas las tiendas en la base de datos de Mongo
+        const tiendas = await Tienda.find().lean();
+        
+        // Pasamos la variable "tiendas" a la vista de Pug
         res.render("transacciones/form", { tiendas });
     } catch (error) {
         res.status(500).send("Error al cargar el formulario");
