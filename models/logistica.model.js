@@ -1,19 +1,25 @@
-class Logistica {
-    constructor(
-        id,
-        transaccion_id,
-        estado_envio,
-        empresa_transporte,
-        direccion_destino,
-        fecha_creacion
-    ) {
-        this.id = id;
-        this.transaccion_id = transaccion_id;
-        this.estado_envio = estado_envio;
-        this.empresa_transporte = empresa_transporte;
-        this.direccion_destino = direccion_destino;
-        this.fecha_creacion = fecha_creacion;
-    }
-}
+import mongoose from "mongoose";
 
-export default Logistica;
+const logisticaSchema = new mongoose.Schema({
+    // Guardará el _id alfanumérico de la Transacción asociada
+    transaccion_id: { 
+        type: String, 
+        required: true 
+    },
+    empresa_transporte: { 
+        type: String, 
+        required: true 
+    },
+    direccion_destino: { 
+        type: String, 
+        required: true 
+    },
+    estado_envio: {  // <-- Respetamos tu nombre original
+        type: String, 
+        default: "En preparación" 
+    }
+}, {
+    timestamps: true // Agrega automáticamente createdAt y updatedAt
+});
+
+export default mongoose.model("Logistica", logisticaSchema);

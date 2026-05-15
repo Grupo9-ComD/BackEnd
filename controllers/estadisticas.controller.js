@@ -1,67 +1,54 @@
-import fs from "fs/promises"; 
-import path from "path"; 
-import { fileURLToPath } from "url";
+import Transaccion from "../models/transaccion.model.js";
 
-// Configuración de rutas absolutas para ES Modules
-const __filename = fileURLToPath(import.meta.url); 
-const __dirname = path.dirname(__filename); 
-
-// Estadísticas solo necesita leer las transacciones
-const rutaTransacciones = path.join(__dirname, "../data/transacciones.json");
-
-// ==========================================
-// FUNCIONES DE LECTURA (ASÍNCRONAS)
-// ==========================================
-const leerTransacciones = async () => { 
-    try { 
-        const data = await fs.readFile(rutaTransacciones, "utf-8"); 
-        return JSON.parse(data); 
-    } catch (error) { 
-        return []; 
-    } 
-};
-
-// ==========================================
-// RUTAS API
-// ==========================================
-// GET REPORTE (Lectura y cálculo matemático) 
-const obtenerReporte = async (req, res) => { 
-    try { 
-        const transacciones = await leerTransacciones();
-        // TODO: Acá va tu lógica matemática (reduce, filter, etc.)
-        res.json({ transacciones });
-    } catch (error) {
-        res.status(500).json({ error: "Error al generar el reporte" });
-    }
-};
-
-// ==========================================
-// FUNCIONES PARA LAS VISTAS PUG
-// ==========================================
-
-// Función auxiliar para que no te dé ReferenceError
+// Función interna que hace la matemática de la empresa
 const generarReporte = async () => {
-    const transacciones = await leerTransacciones();
-    // TODO: Reemplazar estos valores fijos por los cálculos reales
-    return { 
-        volumen_total: 20000, 
-        ganancia_plataforma: 1000, 
-        tasa_error: 50 
+    // Traemos todas las transacciones de MongoDB
+    const transacciones = await Transaccion.find();
+    
+    // 1. Ventas Totales (Cantidad de operaciones)
+    const ventasTotales = transacciones.length;
+    
+    // 2. Volumen Movido (Suma de todos los montos)
+    const volumenMovido = transacciones.reduce((acc, t) => acc + t.monto_total, 0);
+    
+    // 3. Ganancia Plataforma (Suma de todas las comisiones de TechRetail)
+    const gananciaPlataforma = transacciones.reduce((acc, t) => acc + (t.split_pagos?.comision_techretail || 0), 0);
+    
+    // 4. Tasa de Error (Porcentaje de transacciones "Con Diferencias")
+    const errores = transacciones.filter(t => t.estado_conciliacion === "Con Diferencias").length;
+    const tasaError = ventasTotales > 0 ? ((errores / ventasTotales) * 100).toFixed(2) : 0;
+    
+    // 5. Estado del Sistema
+    const estadoSistema = tasaError > 10 ? "Alerta Crítica: Revisar Pasarela" : "Operando Normal";
+
+    return {
+        evento: "Campaña Hot Sale - TechRetail Solutions",
+        ventasTotales,
+        volumenMovido,
+        gananciaPlataforma,
+        tasaError: `${tasaError}%`,
+        estadoSistema
     };
 };
 
-const obtenerEstadisticasVista = async (req, res) => { 
-    try { 
-        // Llama a la función auxiliar para obtener el objeto de datos
-        const reporte = await generarReporte(); 
-        res.render("estadisticas/reporte", { reporte }); 
-    } catch (error) { 
-        res.status(500).send("Error al cargar la vista de estadísticas"); 
-    } 
-}; 
-
-// EXPORTACIÓN MODERNA (ES Modules)
-export { 
-    obtenerReporte,
-    obtenerEstadisticasVista 
+// ENDPOINT PARA THUNDER CLIENT
+const obtenerReporte = async (req, res) => {
+    try {
+        const reporte = await generarReporte();
+        res.json(reporte);
+    } catch (error) {
+        res.status(500).json({ error: "Error al calcular las métricas" });
+    }
 };
+
+// VISTA FRONTEND
+const obtenerEstadisticasVista = async (req, res) => {
+    try {
+        const reporte = await generarReporte();
+        res.render("estadisticas/reporte", { reporte });
+    } catch (error) {
+        res.status(500).send("Error al cargar la vista del reporte");
+    }
+};
+
+export { obtenerReporte, obtenerEstadisticasVista };

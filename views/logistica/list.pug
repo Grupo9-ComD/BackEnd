@@ -12,10 +12,15 @@ block content
           th Transacción ID
           th Empresa Transporte
           th Destino
+          th Estado
       tbody
-        each envio in logistica
+        //- Cambiamos "logistica" por "envios"
+        each envio in envios
           tr
-            td= envio.id
-            td= envio.id_transaccion
+            td= envio._id
+            //- Cambiamos "id_transaccion" por "transaccion_id"
+            td= envio.transaccion_id
             td= envio.empresa_transporte
             td= envio.direccion_destino
+            //- Agregamos la columna de estado
+            td= envio.estado_envio

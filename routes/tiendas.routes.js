@@ -4,32 +4,28 @@ import {
     obtenerTiendaPorId,
     crearTienda,
     actualizarTienda,
-    eliminarTienda
+    eliminarTienda,
+    obtenerTiendasVista,
+    obtenerTiendaVista,
+    formularioNuevaTienda
 } from "../controllers/tiendas.controller.js";
-
-import { obtenerTiendasVista,
-    formularioNuevaTienda } from "../controllers/tiendas.controller.js";
 
 const router = express.Router();
 
-// GET ALL
-router.get("/", obtenerTiendas);
-
+// ==========================================
+// RUTAS PARA LAS VISTAS PUG (Front-end)
+// ==========================================
 router.get("/vista", obtenerTiendasVista);
 router.get("/nuevo", formularioNuevaTienda);
+router.get("/vista/:id", obtenerTiendaVista);
 
-// GET BY ID
+// ==========================================
+// RUTAS API REST (Endpoints para Thunder Client)
+// ==========================================
+router.get("/", obtenerTiendas);
 router.get("/:id", obtenerTiendaPorId);
-
-// CREATE
 router.post("/", crearTienda);
-
-// UPDATE
 router.put("/:id", actualizarTienda);
-
-// DELETE (baja lógica)
 router.delete("/:id", eliminarTienda);
-
-
 
 export default router;

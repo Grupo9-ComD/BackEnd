@@ -1,17 +1,24 @@
-class Usuario {
-    constructor(
-        id,
-        nombre,
-        email,
-        rol,
-        estado = "Activo"
-    ) {
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.rol = rol;
-        this.estado = estado;
-    }
-}
+import mongoose from "mongoose";
 
-export default Usuario;
+const usuarioSchema = new mongoose.Schema({
+    nombre: { 
+        type: String, 
+        required: true 
+    },
+    email: { 
+        type: String, 
+        required: true 
+    },
+    rol: { 
+        type: String, 
+        required: true 
+    },
+    estado: { 
+        type: String, 
+        default: "Activo" 
+    }
+}, {
+    timestamps: true // Genera createdAt y updatedAt automáticamente
+});
+
+export default mongoose.model("Usuario", usuarioSchema);

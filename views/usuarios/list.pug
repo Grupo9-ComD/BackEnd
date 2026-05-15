@@ -11,9 +11,13 @@ block content
           th ID
           th Nombre
           th Email
+          th Rol
+          th Estado
       tbody
         each usuario in usuarios
           tr
-            td= usuario.id
-            td= usuario.nombre_empleado
-            td= usuario.email_corporativo
+            td= usuario._id
+            td= usuario.nombre
+            td= usuario.email
+            td= usuario.rol
+            td= usuario.estado

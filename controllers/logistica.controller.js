@@ -1,141 +1,138 @@
-import fs from "fs/promises"; 
-import path from "path"; 
-import { fileURLToPath } from "url"; 
 import Logistica from "../models/logistica.model.js";
-
-// Configuración de rutas absolutas para ES Modules
-const __filename = fileURLToPath(import.meta.url); 
-const __dirname = path.dirname(__filename); 
-const rutaArchivo = path.join(__dirname, "../data/logistica.json"); 
-const rutaTransacciones = path.join(__dirname, "../data/transacciones.json");
+import Transaccion from "../models/transaccion.model.js"; // Lo importamos para validar y armar el Select
 
 // ==========================================
-// FUNCIONES DE LECTURA/ESCRITURA (ASÍNCRONAS)
-// ==========================================
-const leerOperaciones = async () => { 
-    try { 
-        const data = await fs.readFile(rutaArchivo, "utf-8"); 
-        return JSON.parse(data); 
-    } catch (error) { 
-        return []; 
-    } 
-};
-
-const leerTransacciones = async () => { 
-    try { 
-        const data = await fs.readFile(rutaTransacciones, "utf-8"); 
-        return JSON.parse(data); 
-    } catch (error) { 
-        return []; 
-    } 
-};
-
-const guardarOperaciones = async (operaciones) => { 
-    await fs.writeFile(rutaArchivo, JSON.stringify(operaciones, null, 2)); 
-};
-
-// ==========================================
-// RUTAS API CRUD
+// RUTAS API CRUD CON MONGODB
 // ==========================================
 
-// GET ALL 
-const obtenerLogistica = async (req, res) => { 
-    try { 
-        const operaciones = await leerOperaciones(); 
-        res.json(operaciones); 
-    } catch (error) { 
-        res.status(500).json({ error: "Error al obtener logística" }); 
-    } 
+// GET ALL
+const obtenerEnvios = async (req, res) => {
+    try {
+        const envios = await Logistica.find();
+        res.json(envios);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los envíos" });
+    }
 };
 
-// GET BY ID 
-const obtenerOperacionPorId = async (req, res) => { 
-    try { 
-        const operaciones = await leerOperaciones(); 
-        const idBuscado = parseInt(req.params.id); 
-        const operacion = operaciones.find(o => o.id === idBuscado);
-        
-        if(operacion){
-            res.json(operacion);
+// GET BY ID
+const obtenerEnvioPorId = async (req, res) => {
+    try {
+        const envio = await Logistica.findById(req.params.id);
+        if (envio) {
+            res.json(envio);
         } else {
-            res.status(404).json({ error: "Operación no encontrada" });
+            res.status(404).json({ error: "Envío no encontrado" });
         }
     } catch (error) {
-        res.status(500).json({ error: "Error interno" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
-// CREATE 
-const crearOperacion = async (req, res) => { 
-    try { 
-        const transacciones = await leerTransacciones(); 
-        const operaciones = await leerOperaciones();
-        
-        // TODO: Acá tenés que agregar el resto de tu lógica de alta...
+// CREATE
+const crearEnvio = async (req, res) => {
+    try {
+        const { transaccion_id, empresa_transporte, direccion_destino } = req.body;
 
-        res.status(201).json({ mensaje: "Lógica de creación pendiente" });
+        // Validamos que la transacción a la que se asocia el envío exista realmente en Mongo
+        const transaccionAsociada = await Transaccion.findById(transaccion_id);
+        if (!transaccionAsociada) {
+            return res.status(404).json({ error: "La transacción indicada no existe." });
+        }
+
+        const nuevoEnvio = new Logistica({
+            transaccion_id: transaccionAsociada._id,
+            empresa_transporte,
+            direccion_destino
+            // Recordá que estado_envio se pone automáticamente en "En preparación" gracias al Esquema
+        });
+
+        await nuevoEnvio.save();
+        res.status(201).json(nuevoEnvio);
     } catch (error) {
-        res.status(500).json({ error: "Error al crear la operación" });
+        console.log(error); // Para debug en consola
+        res.status(400).json({ error: "Error al crear el envío. Verificá los datos." });
     }
 };
 
-// UPDATE 
-const actualizarOperacion = async (req, res) => { 
-    try { 
-        const operaciones = await leerOperaciones(); 
-        const idBuscado = parseInt(req.params.id); 
-        const index = operaciones.findIndex(o => o.id === idBuscado);
-        
-        // TODO: Acá tenés que agregar el resto de tu lógica de actualización...
-
-        res.status(200).json({ mensaje: "Lógica de actualización pendiente" });
+// UPDATE
+const actualizarEnvio = async (req, res) => {
+    try {
+        const envioActualizado = await Logistica.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (envioActualizado) {
+            res.json(envioActualizado);
+        } else {
+            res.status(404).json({ error: "Envío no encontrado" });
+        }
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar" });
+        res.status(400).json({ error: "Error al actualizar el envío" });
     }
 };
 
-// DELETE 
-const eliminarOperacion = async (req, res) => { 
-    try { 
-        const operaciones = await leerOperaciones(); 
-        const idBuscado = parseInt(req.params.id); 
-        const index = operaciones.findIndex(o => o.id === idBuscado);
-
-        // TODO: Acá tenés que agregar el resto de tu lógica de eliminación...
-
-        res.status(200).json({ mensaje: "Lógica de eliminación pendiente" });
+// DELETE (Baja lógica / Cancelación)
+const eliminarEnvio = async (req, res) => {
+    try {
+        const envioCancelado = await Logistica.findByIdAndUpdate(
+            req.params.id,
+            { estado_envio: "Cancelado" }, 
+            { new: true }
+        );
+        if (envioCancelado) {
+            res.json({ mensaje: "Envío cancelado exitosamente", envio: envioCancelado });
+        } else {
+            res.status(404).json({ error: "Envío no encontrado" });
+        }
     } catch (error) {
-        res.status(500).json({ error: "Error al eliminar" });
+        res.status(500).json({ error: "Error al cancelar el envío" });
     }
 };
 
 // ==========================================
-// NUEVAS FUNCIONES PARA LAS VISTAS PUG
+// FUNCIONES PARA LAS VISTAS PUG
 // ==========================================
-const obtenerLogisticaVista = async (req, res) => { 
-    try { 
-        const logistica = await leerOperaciones(); 
-        res.render("logistica/list", { logistica }); 
-    } catch (error) { 
-        res.status(500).send("Error al renderizar la vista"); 
-    } 
-}; 
-
-const formularioNuevaLogistica = async (req, res) => { 
-    try { 
-        res.render("logistica/form"); 
-    } catch (error) { 
-        res.status(500).send("Error al cargar el formulario"); 
-    } 
+const obtenerEnviosVista = async (req, res) => {
+    try {
+        const envios = await Logistica.find().lean();
+        res.render("logistica/list", { envios });
+    } catch (error) {
+        res.status(500).send("Error al cargar la vista de envíos");
+    }
 };
 
-// EXPORTACIÓN MODERNA (ES Modules)
-export { 
-    obtenerLogistica, 
-    obtenerOperacionPorId, 
-    crearOperacion, 
-    actualizarOperacion, 
-    eliminarOperacion,
-    obtenerLogisticaVista, 
-    formularioNuevaLogistica   
+const obtenerEnvioVista = async (req, res) => {
+    try {
+        const envio = await Logistica.findById(req.params.id).lean();
+        if (!envio) {
+            return res.status(404).send("Envío no encontrado");
+        }
+        res.render("logistica/detail", { envio });
+    } catch (error) {
+        res.status(500).send("Error al cargar el detalle del envío");
+    }
+};
+
+const formularioNuevoEnvio = async (req, res) => {
+    try {
+        // Traemos las transacciones para que el usuario pueda elegir en un <select>
+        const transacciones = await Transaccion.find().lean();
+        res.render("logistica/form", { transacciones });
+    } catch (error) {
+        res.status(500).send("Error al cargar el formulario de logística");
+    }
+};
+
+// EXPORTACIÓN MODERNA
+export {
+    obtenerEnvios,
+    obtenerEnvioPorId,
+    crearEnvio,
+    actualizarEnvio,
+    eliminarEnvio,
+    obtenerEnviosVista,
+    obtenerEnvioVista,
+    formularioNuevoEnvio
 };

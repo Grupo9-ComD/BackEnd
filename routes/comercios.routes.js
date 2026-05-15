@@ -1,25 +1,27 @@
 import express from "express";
-
-// Importamos todas las funciones del controlador usando la sintaxis moderna
 import {
-    obtenerComerciosVista,
-    formularioNuevoComercio,
-    obtenerComercioVista,
     obtenerComercios,
     obtenerComercioPorId,
     crearComercio,
     actualizarComercio,
-    eliminarComercio
+    eliminarComercio,
+    obtenerComerciosVista,
+    obtenerComercioVista,
+    formularioNuevoComercio
 } from "../controllers/comercios.controller.js";
 
 const router = express.Router();
 
-// ---------- VISTAS PUG ----------
+// ==========================================
+// RUTAS PARA LAS VISTAS PUG (Front-end)
+// ==========================================
 router.get("/vista", obtenerComerciosVista);
 router.get("/nuevo", formularioNuevoComercio);
 router.get("/vista/:id", obtenerComercioVista);
 
-// ---------- API JSON ----------
+// ==========================================
+// RUTAS API REST (Endpoints para Thunder Client)
+// ==========================================
 router.get("/", obtenerComercios);
 router.get("/:id", obtenerComercioPorId);
 router.post("/", crearComercio);

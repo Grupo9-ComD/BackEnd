@@ -1,5 +1,4 @@
 import express from "express";
-// Importamos las funciones asíncronas con extensión .js
 import {
     obtenerTransacciones,
     obtenerTransaccionPorId,
@@ -7,29 +6,26 @@ import {
     actualizarTransaccion,
     eliminarTransaccion,
     obtenerTransaccionesVista,
+    obtenerTransaccionVista,
     formularioNuevaTransaccion
 } from "../controllers/transacciones.controller.js";
 
 const router = express.Router();
 
-// GET ALL
-router.get("/", obtenerTransacciones);
-
+// ==========================================
+// RUTAS PARA LAS VISTAS PUG (Front-end)
+// ==========================================
 router.get("/vista", obtenerTransaccionesVista);
-
 router.get("/nuevo", formularioNuevaTransaccion);
-// GET BY ID
+router.get("/vista/:id", obtenerTransaccionVista);
+
+// ==========================================
+// RUTAS API REST (Endpoints para Thunder Client)
+// ==========================================
+router.get("/", obtenerTransacciones);
 router.get("/:id", obtenerTransaccionPorId);
-
-// CREATE
 router.post("/", crearTransaccion);
-
-// UPDATE
 router.put("/:id", actualizarTransaccion);
-
-// DELETE
 router.delete("/:id", eliminarTransaccion);
-
-
 
 export default router;
