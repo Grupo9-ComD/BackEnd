@@ -5,7 +5,9 @@ import {
     obtenerTransaccionPorId,
     crearTransaccion,
     actualizarTransaccion,
-    eliminarTransaccion
+    eliminarTransaccion,
+    obtenerTransaccionesVista,
+    formularioNuevaTransaccion
 } from "../controllers/transacciones.controller.js";
 
 const router = express.Router();
@@ -13,6 +15,9 @@ const router = express.Router();
 // GET ALL
 router.get("/", obtenerTransacciones);
 
+router.get("/vista", obtenerTransaccionesVista);
+
+router.get("/nuevo", formularioNuevaTransaccion);
 // GET BY ID
 router.get("/:id", obtenerTransaccionPorId);
 
@@ -24,5 +29,7 @@ router.put("/:id", actualizarTransaccion);
 
 // DELETE
 router.delete("/:id", eliminarTransaccion);
+
+
 
 export default router;

@@ -103,4 +103,15 @@ const eliminarUsuario = async (req, res) => {
     }
 };
 
-export { obtenerUsuarios, obtenerUsuarioPorId, crearUsuario, actualizarUsuario, eliminarUsuario };
+const obtenerUsuariosVista = async (req, res) => {
+    try {
+        const usuarios = await leerUsuarios();
+        res.render("usuarios/list", { usuarios });
+    } catch (error) { res.status(500).send("Error"); }
+};
+const formularioNuevoUsuario = async (req, res) => {
+    try { res.render("usuarios/form"); } 
+    catch (error) { res.status(500).send("Error"); }
+};
+
+export { obtenerUsuarios, obtenerUsuarioPorId, crearUsuario, actualizarUsuario, eliminarUsuario, obtenerUsuariosVista,formularioNuevoUsuario };

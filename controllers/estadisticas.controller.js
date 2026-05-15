@@ -1,62 +1,67 @@
 import fs from "fs/promises"; 
-import path from "path";
+import path from "path"; 
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Estadísticas solo necesita leer las transacciones
-const rutaTransacciones = path.join(__dirname, "../data/transacciones.json"); 
+// Configuración de rutas absolutas para ES Modules
+const __filename = fileURLToPath(import.meta.url); 
+const __dirname = path.dirname(__filename); 
 
+// Estadísticas solo necesita leer las transacciones
+const rutaTransacciones = path.join(__dirname, "../data/transacciones.json");
+
+// ==========================================
+// FUNCIONES DE LECTURA (ASÍNCRONAS)
+// ==========================================
 const leerTransacciones = async () => { 
-    try {
+    try { 
         const data = await fs.readFile(rutaTransacciones, "utf-8"); 
-        return JSON.parse(data);
+        return JSON.parse(data); 
     } catch (error) { 
         return []; 
-    }
+    } 
 };
 
-// GET REPORTE (Lectura y cálculo matemático)
+// ==========================================
+// RUTAS API
+// ==========================================
+// GET REPORTE (Lectura y cálculo matemático) 
 const obtenerReporte = async (req, res) => { 
-    try {
+    try { 
         const transacciones = await leerTransacciones();
-
-        // 1. Ventas Totales
-        const ventasTotales = transacciones.length;
-
-        // 2. Volumen Movido (Suma de todos los montos totales)
-        const volumenMovido = transacciones.reduce((acumulador, t) => acumulador + (t.monto_total || 0), 0);
-
-        // 3. Ganancia de la Plataforma (Suma de todas las comisiones de TechRetail)
-        const gananciaPlataforma = transacciones.reduce((acumulador, t) => {
-            return acumulador + (t.split_pagos ? t.split_pagos.comision_techretail : 0);
-        }, 0);
-
-        // 4. Tasa de Error (Porcentaje de inconsistencias)
-        const transaccionesConError = transacciones.filter(t => t.estado_conciliacion === "Inconsistencia Detectada").length;
-        const tasaError = ventasTotales > 0 ? (transaccionesConError / ventasTotales) * 100 : 0;
-
-        // 5. Estado del Sistema
-        let estadoSistema = "Estable";
-        if (tasaError > 0) {
-            estadoSistema = "Alerta Crítica: Revisar Pasarela";
-        }
-
-        // Armamos el objeto final tal como se ve en la UI 
-        const reporteHotSale = {
-            evento: "Campaña Hot Sale - TechRetail Solutions",
-            ventas_totales: ventasTotales,
-            volumen_movido: volumenMovido,
-            ganancia_plataforma: gananciaPlataforma,
-            tasa_error: `${tasaError.toFixed(2)}%`,
-            estado_sistema: estadoSistema
-        };
-
-        res.json(reporteHotSale);
-
+        // TODO: Acá va tu lógica matemática (reduce, filter, etc.)
+        res.json({ transacciones });
     } catch (error) {
-        res.status(500).json({ error: "Error interno al generar el reporte de estadísticas" });
+        res.status(500).json({ error: "Error al generar el reporte" });
     }
 };
 
-export { obtenerReporte };
+// ==========================================
+// FUNCIONES PARA LAS VISTAS PUG
+// ==========================================
+
+// Función auxiliar para que no te dé ReferenceError
+const generarReporte = async () => {
+    const transacciones = await leerTransacciones();
+    // TODO: Reemplazar estos valores fijos por los cálculos reales
+    return { 
+        volumen_total: 20000, 
+        ganancia_plataforma: 1000, 
+        tasa_error: 50 
+    };
+};
+
+const obtenerEstadisticasVista = async (req, res) => { 
+    try { 
+        // Llama a la función auxiliar para obtener el objeto de datos
+        const reporte = await generarReporte(); 
+        res.render("estadisticas/reporte", { reporte }); 
+    } catch (error) { 
+        res.status(500).send("Error al cargar la vista de estadísticas"); 
+    } 
+}; 
+
+// EXPORTACIÓN MODERNA (ES Modules)
+export { 
+    obtenerReporte,
+    obtenerEstadisticasVista 
+};

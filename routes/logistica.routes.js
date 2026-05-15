@@ -4,13 +4,19 @@ import {
     obtenerOperacionPorId,
     crearOperacion,
     actualizarOperacion,
-    eliminarOperacion
+    eliminarOperacion,
+    obtenerLogisticaVista,
+    formularioNuevaLogistica
 } from "../controllers/logistica.controller.js";
 
 const router = express.Router();
 
 // GET todas las operaciones de logística
-router.get("/", obtenerLogistica);
+router.get("/", obtenerLogistica)
+
+router.get("/vista", obtenerLogisticaVista);
+
+router.get("/nuevo", formularioNuevaLogistica);;
 
 // GET una operación específica por ID
 router.get("/:id", obtenerOperacionPorId);
@@ -23,5 +29,7 @@ router.put("/:id", actualizarOperacion);
 
 // DELETE eliminar o dar de baja una operación
 router.delete("/:id", eliminarOperacion);
+
+
 
 export default router;

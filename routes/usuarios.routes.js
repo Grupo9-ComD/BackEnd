@@ -5,14 +5,18 @@ import {
     obtenerUsuarioPorId,
     crearUsuario,
     actualizarUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    obtenerUsuariosVista,
+    formularioNuevoUsuario
 } from "../controllers/usuarios.controller.js";
 
 const router = express.Router();
 
 // GET ALL
 router.get("/", obtenerUsuarios);
+router.get("/vista", obtenerUsuariosVista);
 
+router.get("/nuevo", formularioNuevoUsuario);
 // GET BY ID
 router.get("/:id", obtenerUsuarioPorId);
 
@@ -24,5 +28,6 @@ router.put("/:id", actualizarUsuario);
 
 // DELETE (baja lógica)
 router.delete("/:id", eliminarUsuario);
+
 
 export default router;

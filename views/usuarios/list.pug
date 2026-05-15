@@ -1,0 +1,19 @@
+extends ../layout
+
+block content
+  .card.col-12
+    .card-header
+      h1 Usuarios Administradores
+      a.btn.btn-ghost(href="/") Volver al Panel
+    table
+      thead
+        tr
+          th ID
+          th Nombre
+          th Email
+      tbody
+        each usuario in usuarios
+          tr
+            td= usuario.id
+            td= usuario.nombre_empleado
+            td= usuario.email_corporativo

@@ -1,0 +1,13 @@
+extends ../layout
+
+block content
+  .card.col-12
+    .card-header
+      h1 Reporte Estadístico Hot Sale
+      a.btn.btn-ghost(href="/") Volver al Panel
+    
+    // Acá las variables dependerán de cómo arma el objeto tu controlador
+    ul
+      li Volumen Movido: $#{reporte.volumen_total}
+      li Ganancia Plataforma: $#{reporte.ganancia_plataforma}
+      li Tasa de Error: #{reporte.tasa_error}%

@@ -134,4 +134,18 @@ const eliminarTransaccion = async (req, res) => {
     }
 };
 
-export { obtenerTransacciones, obtenerTransaccionPorId, crearTransaccion, actualizarTransaccion, eliminarTransaccion };
+
+
+const obtenerTransaccionesVista = async (req, res) => {
+    try {
+        const transacciones = await leerTransacciones();
+        res.render("transacciones/list", { transacciones });
+    } catch (error) { res.status(500).send("Error"); }
+};
+
+const formularioNuevaTransaccion = async (req, res) => {
+    try { res.render("transacciones/form"); } 
+    catch (error) { res.status(500).send("Error"); }
+};
+
+export { obtenerTransacciones, obtenerTransaccionPorId, crearTransaccion, actualizarTransaccion, eliminarTransaccion, obtenerTransaccionesVista, formularioNuevaTransaccion };

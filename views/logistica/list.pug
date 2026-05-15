@@ -1,0 +1,21 @@
+extends ../layout
+
+block content
+  .card.col-12
+    .card-header
+      h1 Envíos Logísticos
+      a.btn.btn-ghost(href="/") Volver al Panel
+    table
+      thead
+        tr
+          th ID
+          th Transacción ID
+          th Empresa Transporte
+          th Destino
+      tbody
+        each envio in logistica
+          tr
+            td= envio.id
+            td= envio.id_transaccion
+            td= envio.empresa_transporte
+            td= envio.direccion_destino
