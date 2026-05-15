@@ -1,38 +1,42 @@
 import mongoose from "mongoose";
 
 const transaccionSchema = new mongoose.Schema({
-    // Guardará el _id alfanumérico de la Tienda donde se hizo la venta
     tienda_id: { 
-        type: String, 
-        required: true 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tienda",
+        required: true
     },
-    // Guardará el _id alfanumérico del Comercio dueño de la tienda
     comercio_id: { 
-        type: String 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comercio"
     },
     monto_total: { 
         type: Number, 
-        required: true 
+        required: true,
+        min: 0
     },
     monto_informado_pasarela: { 
         type: Number, 
-        required: true 
+        required: true,
+        min: 0
     },
-    // Objeto anidado tal como lo tenías en tus pruebas de Thunder Client
     split_pagos: {
-        comision_techretail: { type: Number, default: 0 },
+        comision_techretail: { type: Number, default: 0, min: 0 },
         ingreso_comercio: { type: Number, default: 0 }
     },
     estado_conciliacion: { 
         type: String, 
-        default: "Pendiente" 
+        default: "Pendiente",
+        enum: ["Pendiente", "Conciliado OK", "Con Diferencias", "Anulada"]
     },
     observacion: { 
         type: String,
-        default: ""
+        default: "",
+        trim: true,
+        maxlength: 500
     }
 }, {
-    timestamps: true // Esto reemplazará tu antiguo campo "fecha" creando createdAt y updatedAt automáticamente
+    timestamps: true
 });
 
 export default mongoose.model("Transaccion", transaccionSchema);

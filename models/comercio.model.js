@@ -1,34 +1,48 @@
 import mongoose from "mongoose";
 
 const comercioSchema = new mongoose.Schema({
-    // Nota: El campo "id" ya no es necesario declararlo, MongoDB genera un "_id" único y automático.
     nombre_comercio: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 120
     },
     cuit: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        validate: {
+            validator: (value) => String(value ?? "").replace(/\D/g, "").length === 11,
+            message: "cuit debe tener 11 dígitos"
+        }
     },
     email_contacto: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        lowercase: true,
+        match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
     plan_suscripcion: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        enum: ["Basico", "Básico", "Premium"]
     },
     comision_variable: { 
         type: Number, 
-        required: true 
+        required: true,
+        min: 0,
+        max: 1
     },
     estado: { 
         type: String, 
-        default: "Activo" // Valor por defecto, tal como lo tenías en tu clase original
+        default: "Activo",
+        enum: ["Activo", "Inactivo"]
     }
 }, {
-    timestamps: true // Crea automáticamente createdAt y updatedAt
+    timestamps: true
 });
 
-// Exportamos el modelo para usarlo en los controladores
 export default mongoose.model("Comercio", comercioSchema);

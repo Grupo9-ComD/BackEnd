@@ -46,7 +46,7 @@ const actualizarTienda = async (req, res) => {
         const tiendaActualizada = await Tienda.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true } 
+            { new: true, runValidators: true } 
         );
         if (tiendaActualizada) {
             res.json(tiendaActualizada);
@@ -104,7 +104,7 @@ const obtenerTiendaVista = async (req, res) => {
 const formularioNuevaTienda = async (req, res) => {
     try {
         const comercios = await Comercio.find({ estado: "Activo" }).lean();
-        res.render("tiendas/form", { comercios });
+        res.render("tiendas/form", { comercios: comercios ?? [] });
     } catch (error) {
         res.status(500).send("Error al cargar el formulario");
     }

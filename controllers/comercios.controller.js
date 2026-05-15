@@ -45,7 +45,7 @@ const actualizarComercio = async (req, res) => {
         const comercioActualizado = await Comercio.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true } // Esto le dice a Mongoose que te devuelva el documento ya modificado
+            { new: true, runValidators: true }
         );
         if (comercioActualizado) {
             res.json(comercioActualizado);

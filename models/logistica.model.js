@@ -1,25 +1,32 @@
 import mongoose from "mongoose";
 
 const logisticaSchema = new mongoose.Schema({
-    // Guardará el _id alfanumérico de la Transacción asociada
     transaccion_id: { 
-        type: String, 
-        required: true 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaccion",
+        required: true
     },
     empresa_transporte: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 120
     },
     direccion_destino: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 200
     },
-    estado_envio: {  // <-- Respetamos tu nombre original
+    estado_envio: {
         type: String, 
-        default: "En preparación" 
+        default: "En preparación",
+        enum: ["En preparación", "En camino", "Entregado", "Cancelado"]
     }
 }, {
-    timestamps: true // Agrega automáticamente createdAt y updatedAt
+    timestamps: true
 });
 
 export default mongoose.model("Logistica", logisticaSchema);

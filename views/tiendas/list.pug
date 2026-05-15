@@ -24,7 +24,11 @@ block content
             td= tienda.nombre_sucursal
             td= tienda.comercio_id 
             td= tienda.ubicacion
-            td= tienda.estado
+            td
+              if tienda.estado === "Activo" || tienda.estado === "Activa"
+                span.status-dot.status-dot--active(title=tienda.estado)
+              else
+                span.status-dot.status-dot--inactive(title=tienda.estado)
         else
           tr
             td(colspan="5") No hay tiendas registradas en este momento.

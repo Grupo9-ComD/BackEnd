@@ -3,23 +3,30 @@ import mongoose from "mongoose";
 const tiendaSchema = new mongoose.Schema({
     nombre_sucursal: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 120
     },
-    // Atención acá: a partir de ahora este campo guardará el "_id" alfanumérico que genera Mongo para los comercios
     comercio_id: { 
-        type: String, 
-        required: true 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comercio",
+        required: true
     },
     ubicacion: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 120
     },
     estado: { 
         type: String, 
-        default: "Activo" // Mantenemos la lógica para la baja lógica
+        default: "Activo",
+        enum: ["Activo", "Inactivo"]
     }
 }, {
-    timestamps: true // Para que Mongoose agregue automáticamente createdAt y updatedAt
+    timestamps: true
 });
 
 export default mongoose.model("Tienda", tiendaSchema);

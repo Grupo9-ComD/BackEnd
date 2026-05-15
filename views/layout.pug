@@ -200,6 +200,27 @@ html(lang="es")
         color: #7f1d1d;
       }
 
+      .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      .status-dot--active {
+        background: rgba(16, 185, 129, .95);
+        border-color: rgba(16, 185, 129, .55);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
+      }
+
+      .status-dot--inactive {
+        background: rgba(239, 68, 68, .95);
+        border-color: rgba(239, 68, 68, .55);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, .10);
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
