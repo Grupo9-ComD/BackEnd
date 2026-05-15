@@ -1,3 +1,6 @@
+
+import conectarDB from "./config/db.js";
+
 import express from "express";
 
 const app = express();
@@ -28,6 +31,9 @@ app.set("views", "./views");
 app.get("/", (req, res) => {
     res.render("index");
 });
+
+
+conectarDB();
 
 // RUTAS DEL SISTEMA
 app.use("/comercios", comerciosRoutes);

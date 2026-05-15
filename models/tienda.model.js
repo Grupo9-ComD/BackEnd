@@ -1,17 +1,25 @@
-class Tienda {
-    constructor(
-        id,
-        nombre,
-        comercio_id,
-        ubicacion,
-        estado = "Activa"
-    ) {
-        this.id = id;
-        this.nombre = nombre;
-        this.comercio_id = comercio_id;
-        this.ubicacion = ubicacion;
-        this.estado = estado;
-    }
-}
+import mongoose from "mongoose";
 
-export default Tienda;
+const tiendaSchema = new mongoose.Schema({
+    nombre_sucursal: { 
+        type: String, 
+        required: true 
+    },
+    // Atención acá: a partir de ahora este campo guardará el "_id" alfanumérico que genera Mongo para los comercios
+    comercio_id: { 
+        type: String, 
+        required: true 
+    },
+    ubicacion: { 
+        type: String, 
+        required: true 
+    },
+    estado: { 
+        type: String, 
+        default: "Activo" // Mantenemos la lógica para la baja lógica
+    }
+}, {
+    timestamps: true // Para que Mongoose agregue automáticamente createdAt y updatedAt
+});
+
+export default mongoose.model("Tienda", tiendaSchema);

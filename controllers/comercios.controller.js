@@ -1,148 +1,120 @@
-import fs from "fs/promises"; 
-import path from "path";
-import { fileURLToPath } from "url";
 import Comercio from "../models/comercio.model.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rutaArchivo = path.join(__dirname, "../data/comercios.json"); 
+// ==========================================
+// RUTAS API CRUD CON MONGODB
+// ==========================================
 
-const leerComercios = async () => { 
+// GET ALL: Buscar todos los comercios
+const obtenerComercios = async (req, res) => {
     try {
-        const data = await fs.readFile(rutaArchivo, "utf-8"); 
-        return JSON.parse(data); 
-    } catch (error) {
-        return [];
-    }
-};
-
-const guardarComercios = async (comercios) => { 
-    await fs.writeFile(rutaArchivo, JSON.stringify(comercios, null, 2)); 
-};
-
-// GET ALL 
-const obtenerComercios = async (req, res) => { 
-    try {
-        const comercios = await leerComercios(); 
-        res.json(comercios); 
+        const comercios = await Comercio.find(); // Reemplaza la lectura del JSON
+        res.json(comercios);
     } catch (error) {
         res.status(500).json({ error: "Error al obtener los comercios" });
     }
 };
 
-// GET BY ID 
-const obtenerComercioPorId = async (req, res) => { 
+// GET BY ID: Buscar por ID generado por Mongo
+const obtenerComercioPorId = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        const idBuscado = parseInt(req.params.id);
-        const comercio = comercios.find(c => c.id === idBuscado);
-        
-        if (!comercio) {
-            return res.status(404).json({ error: "Comercio no encontrado" });
+        const comercio = await Comercio.findById(req.params.id);
+        if (comercio) {
+            res.json(comercio);
+        } else {
+            res.status(404).json({ error: "Comercio no encontrado" });
         }
-        res.json(comercio);
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener el comercio" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
-// CREATE 
+// CREATE: Guardar un nuevo comercio en la BD
 const crearComercio = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        // ID autoincremental
-        const nuevoId = comercios.length > 0 ? Math.max(...comercios.map(c => c.id)) + 1 : 1;
-        
-        // Usamos POO instanciando el modelo
-        const nuevoComercio = new Comercio(
-            nuevoId,
-            req.body.nombre_comercio,
-            req.body.cuit,
-            req.body.email_contacto,
-            req.body.plan_suscripcion,
-            req.body.comision_variable,
-            "Activo" // Estado por defecto
-        );
-
-        comercios.push(nuevoComercio);
-        await guardarComercios(comercios);
-        
-        res.status(201).json({ mensaje: "Comercio creado con éxito", comercio: nuevoComercio });
+        const nuevoComercio = new Comercio(req.body);
+        await nuevoComercio.save(); // Crea la colección automáticamente si no existe
+        res.status(201).json(nuevoComercio);
     } catch (error) {
-        res.status(500).json({ error: "Error al crear el comercio" });
+        res.status(400).json({ error: "Error al crear el comercio. Verificá los datos." });
     }
 };
 
-// UPDATE 
+// UPDATE: Actualizar un comercio
 const actualizarComercio = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        const idBuscado = parseInt(req.params.id);
-        const index = comercios.findIndex(c => c.id === idBuscado);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Comercio no encontrado para actualizar" });
+        const comercioActualizado = await Comercio.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true } // Esto le dice a Mongoose que te devuelva el documento ya modificado
+        );
+        if (comercioActualizado) {
+            res.json(comercioActualizado);
+        } else {
+            res.status(404).json({ error: "Comercio no encontrado" });
         }
-
-        // Actualizamos las propiedades
-        comercios[index] = { ...comercios[index], ...req.body, id: idBuscado };
-        await guardarComercios(comercios);
-
-        res.json({ mensaje: "Comercio actualizado con éxito", comercio: comercios[index] });
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar el comercio" });
+        res.status(400).json({ error: "Error al actualizar el comercio" });
     }
 };
 
-// DELETE (BAJA LOGICA) 
+// DELETE: Baja Lógica (Tal como indicaron en su documentación)
 const eliminarComercio = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        const idBuscado = parseInt(req.params.id);
-        const index = comercios.findIndex(c => c.id === idBuscado);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Comercio no encontrado para dar de baja" });
+        const comercioEliminado = await Comercio.findByIdAndUpdate(
+            req.params.id,
+            { estado: "Inactivo" }, // Cambiamos el estado en lugar de borrarlo físicamente
+            { new: true }
+        );
+        if (comercioEliminado) {
+            res.json({ mensaje: "Comercio dado de baja lógicamente", comercio: comercioEliminado });
+        } else {
+            res.status(404).json({ error: "Comercio no encontrado" });
         }
-
-        // Aplicamos la baja lógica cambiando el estado
-        comercios[index].estado = "Inactivo";
-        await guardarComercios(comercios);
-
-        res.json({ mensaje: "Comercio dado de baja lógica exitosamente", comercio: comercios[index] });
     } catch (error) {
         res.status(500).json({ error: "Error al eliminar el comercio" });
     }
 };
 
-// VISTAS FRONTEND
-const obtenerComerciosVista = async (req, res) => { 
+// ==========================================
+// FUNCIONES PARA LAS VISTAS PUG
+// ==========================================
+const obtenerComerciosVista = async (req, res) => {
     try {
-        const comercios = await leerComercios(); 
-        res.render("comercios/list", { comercios }); 
+        // En Mongoose, usar .lean() es una buena práctica al mandar datos a plantillas Pug
+        const comercios = await Comercio.find().lean(); 
+        res.render("comercios/list", { comercios });
     } catch (error) {
-        res.status(500).send("Error al renderizar la vista de comercios");
+        res.status(500).send("Error al cargar la vista de comercios");
     }
 };
 
-const obtenerComercioVista = async (req, res) => { 
+const formularioNuevoComercio = (req, res) => {
+    res.render("comercios/form");
+};
+
+
+// GET BY ID (PARA LA VISTA)
+const obtenerComercioVista = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        const idBuscado = parseInt(req.params.id);
-        const comercio = comercios.find(c => c.id === idBuscado);
-        if (!comercio) return res.status(404).send("Comercio no encontrado");
-        
-        res.render("comercios/detail", { comercio });
+        // Usamos findById y .lean() para pasar los datos limpios a Pug
+        const comercio = await Comercio.findById(req.params.id).lean(); 
+        if (!comercio) {
+            return res.status(404).send("Comercio no encontrado");
+        }
+        // Asumiendo que tenías una vista individual, por ejemplo 'detail' o 'view'
+        res.render("comercios/detail", { comercio }); 
     } catch (error) {
-        res.status(500).send("Error al renderizar la vista del comercio");
+        res.status(500).send("Error al cargar la vista del comercio");
     }
 };
-
-const formularioNuevoComercio = (req, res) => { 
-    res.render("comercios/form"); 
-};
-
-export { 
-    obtenerComercios, obtenerComercioPorId, crearComercio, actualizarComercio, eliminarComercio, 
-    obtenerComercioVista, obtenerComerciosVista, formularioNuevoComercio
+// EXPORTACIÓN MODERNA (ES Modules)
+export {
+    obtenerComercios,
+    obtenerComercioPorId,
+    crearComercio,
+    actualizarComercio,
+    eliminarComercio,
+    obtenerComerciosVista,
+    obtenerComercioVista,     // <-- ¡Acá está la que pedía tu archivo de rutas!
+    formularioNuevoComercio
 };

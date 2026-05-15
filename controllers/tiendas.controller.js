@@ -1,153 +1,123 @@
-import fs from "fs/promises"; 
-import path from "path";
-import { fileURLToPath } from "url";
 import Tienda from "../models/tienda.model.js";
+import Comercio from "../models/comercio.model.js"; // <-- Importado para el select dinámico
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rutaArchivo = path.join(__dirname, "../data/tiendas.json"); 
-const rutaComercios = path.join(__dirname, "../data/comercios.json");
+// ==========================================
+// RUTAS API CRUD CON MONGODB
+// ==========================================
 
-const leerTiendas = async () => { 
+// GET ALL
+const obtenerTiendas = async (req, res) => {
     try {
-        const data = await fs.readFile(rutaArchivo, "utf-8"); 
-        return JSON.parse(data);
+        const tiendas = await Tienda.find();
+        res.json(tiendas);
     } catch (error) {
-        return [];
+        res.status(500).json({ error: "Error al obtener las tiendas" });
     }
 };
 
-const leerComercios = async () => { 
-    try {
-        const data = await fs.readFile(rutaComercios, "utf-8"); 
-        return JSON.parse(data);
-    } catch (error) {
-        return [];
-    }
-};
-
-const guardarTiendas = async (tiendas) => { 
-    await fs.writeFile(rutaArchivo, JSON.stringify(tiendas, null, 2)); 
-};
-
-// GET ALL 
-const obtenerTiendas = async (req, res) => { 
-    try {
-        const tiendas = await leerTiendas();
-        res.json(tiendas); 
-    } catch (error) {
-        res.status(500).json({ error: "Error al obtener tiendas" });
-    }
-};
-
-// GET BY ID 
+// GET BY ID
 const obtenerTiendaPorId = async (req, res) => {
     try {
-        const tiendas = await leerTiendas();
-        const idBuscado = parseInt(req.params.id);
-        const tienda = tiendas.find(t => t.id === idBuscado);
-        
-        if (!tienda) {
-            return res.status(404).json({ error: "Tienda no encontrada" });
+        const tienda = await Tienda.findById(req.params.id);
+        if (tienda) {
+            res.json(tienda);
+        } else {
+            res.status(404).json({ error: "Tienda no encontrada" });
         }
-        res.json(tienda);
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener la tienda" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
-// CREATE 
-const crearTienda = async (req, res) => { 
+// CREATE
+const crearTienda = async (req, res) => {
     try {
-        const comercios = await leerComercios();
-        const tiendas = await leerTiendas();
-        
-        const idComercioAsociado = parseInt(req.body.id_comercio);
-        const comercioExiste = comercios.find(c => c.id === idComercioAsociado);
-
-        // Validación: La tienda solo se crea si el comercio existe y está Activo
-        if (!comercioExiste || comercioExiste.estado === "Inactivo") {
-            return res.status(400).json({ error: "El comercio indicado no existe o está inactivo." });
-        }
-
-        const nuevoId = tiendas.length > 0 ? Math.max(...tiendas.map(t => t.id)) + 1 : 1;
-        
-        // POO al instanciar el modelo
-        const nuevaTienda = new Tienda(
-            nuevoId,
-            req.body.nombre_sucursal,
-            idComercioAsociado,
-            req.body.ubicacion,
-            "Activa"
-        );
-
-        tiendas.push(nuevaTienda);
-        await guardarTiendas(tiendas);
-
-        res.status(201).json({ mensaje: "Tienda creada con éxito", tienda: nuevaTienda });
+        const nuevaTienda = new Tienda(req.body);
+        await nuevaTienda.save();
+        res.status(201).json(nuevaTienda);
     } catch (error) {
-        res.status(500).json({ error: "Error interno al crear tienda" });
+        res.status(400).json({ error: "Error al crear la tienda. Verificá los datos." });
     }
 };
 
-// UPDATE 
+// UPDATE
 const actualizarTienda = async (req, res) => {
     try {
-        const tiendas = await leerTiendas();
-        const idBuscado = parseInt(req.params.id);
-        const index = tiendas.findIndex(t => t.id === idBuscado);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Tienda no encontrada para actualizar" });
+        const tiendaActualizada = await Tienda.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true } 
+        );
+        if (tiendaActualizada) {
+            res.json(tiendaActualizada);
+        } else {
+            res.status(404).json({ error: "Tienda no encontrada" });
         }
-
-        tiendas[index] = { ...tiendas[index], ...req.body, id: idBuscado };
-        await guardarTiendas(tiendas);
-
-        res.json({ mensaje: "Tienda actualizada con éxito", tienda: tiendas[index] });
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar la tienda" });
+        res.status(400).json({ error: "Error al actualizar la tienda" });
     }
 };
 
-// DELETE (BAJA LOGICA) 
+// DELETE (Baja Lógica)
 const eliminarTienda = async (req, res) => {
     try {
-        const tiendas = await leerTiendas();
-        const idBuscado = parseInt(req.params.id);
-        const index = tiendas.findIndex(t => t.id === idBuscado);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Tienda no encontrada para dar de baja" });
+        const tiendaEliminada = await Tienda.findByIdAndUpdate(
+            req.params.id,
+            { estado: "Inactivo" }, 
+            { new: true }
+        );
+        if (tiendaEliminada) {
+            res.json({ mensaje: "Tienda dada de baja lógicamente", tienda: tiendaEliminada });
+        } else {
+            res.status(404).json({ error: "Tienda no encontrada" });
         }
-
-        // Baja lógica
-        tiendas[index].estado = "Inactiva";
-        await guardarTiendas(tiendas);
-
-        res.json({ mensaje: "Tienda dada de baja lógica exitosamente", tienda: tiendas[index] });
     } catch (error) {
         res.status(500).json({ error: "Error al eliminar la tienda" });
     }
 };
 
-
-// VISTA FRONTEND: Renderizar la lista de tiendas
-const obtenerTiendasVista = async (req, res) => { 
+// ==========================================
+// FUNCIONES PARA LAS VISTAS PUG
+// ==========================================
+const obtenerTiendasVista = async (req, res) => {
     try {
-        const tiendas = await leerTiendas(); 
-        res.render("tiendas/list", { tiendas }); // Llama al archivo list.pug dentro de la carpeta tiendas
+        const tiendas = await Tienda.find().lean(); 
+        res.render("tiendas/list", { tiendas });
     } catch (error) {
-        res.status(500).send("Error al renderizar la vista de tiendas");
+        res.status(500).send("Error al cargar la vista de tiendas");
     }
 };
 
-// VISTA FRONTEND: Renderizar el formulario para crear una tienda nueva
+const obtenerTiendaVista = async (req, res) => {
+    try {
+        const tienda = await Tienda.findById(req.params.id).lean();
+        if (!tienda) {
+            return res.status(404).send("Tienda no encontrada");
+        }
+        res.render("tiendas/detail", { tienda });
+    } catch (error) {
+        res.status(500).send("Error al cargar el detalle de la tienda");
+    }
+};
+
+// VISTA DE ALTA DINÁMICA (Trae los comercios al Select)
 const formularioNuevaTienda = async (req, res) => {
     try {
-        res.render("tiendas/form"); // Busca el archivo form.pug dentro de la carpeta tiendas
+        const comercios = await Comercio.find({ estado: "Activo" }).lean();
+        res.render("tiendas/form", { comercios });
     } catch (error) {
-        res.status(500).send("Error al cargar el formulario de tiendas");
+        res.status(500).send("Error al cargar el formulario");
     }
 };
-export { obtenerTiendas, obtenerTiendaPorId, crearTienda, actualizarTienda, eliminarTienda, obtenerTiendasVista, formularioNuevaTienda };
+
+// EXPORTACIÓN MODERNA (ES Modules)
+export {
+    obtenerTiendas,
+    obtenerTiendaPorId,
+    crearTienda,
+    actualizarTienda,  // <-- ¡Acá está restaurada!
+    eliminarTienda,
+    obtenerTiendasVista,
+    obtenerTiendaVista,
+    formularioNuevaTienda
+};
