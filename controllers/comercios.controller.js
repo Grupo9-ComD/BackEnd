@@ -33,7 +33,7 @@ const crearComercio = async (req, res) => {
     try {
         const nuevoComercio = new Comercio(req.body);
         await nuevoComercio.save(); // Crea la colección automáticamente si no existe
-        res.status(201).json(nuevoComercio);
+        res.redirect("/comercios/vista");
     } catch (error) {
         res.status(400).json({ error: "Error al crear el comercio. Verificá los datos." });
     }

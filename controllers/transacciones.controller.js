@@ -80,7 +80,7 @@ const crearTransaccion = async (req, res) => {
         });
 
         await nuevaTransaccion.save();
-        res.status(201).json(nuevaTransaccion);
+        res.redirect("/transacciones/vista");
 
     } catch (error) {
         console.log(error); // Para ver detalles en la terminal si algo falla

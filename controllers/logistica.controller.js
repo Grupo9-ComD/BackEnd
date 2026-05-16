@@ -48,7 +48,7 @@ const crearEnvio = async (req, res) => {
         });
 
         await nuevoEnvio.save();
-        res.status(201).json(nuevoEnvio);
+        res.redirect("/logistica/vista");
     } catch (error) {
         console.log(error); // Para debug en consola
         res.status(400).json({ error: "Error al crear el envío. Verificá los datos." });

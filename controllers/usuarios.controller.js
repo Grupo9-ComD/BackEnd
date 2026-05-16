@@ -25,7 +25,7 @@ const crearUsuario = async (req, res) => {
     try {
         const nuevoUsuario = new Usuario(req.body);
         await nuevoUsuario.save();
-        res.status(201).json(nuevoUsuario);
+        res.redirect("/usuarios/vista");
     } catch (error) {
         res.status(400).json({ error: "Error al crear usuario" });
     }

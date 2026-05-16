@@ -14,4 +14,4 @@ class Estadistica {
     }
 }
 
-exports default Estadistica;
+export default Estadistica;

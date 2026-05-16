@@ -34,7 +34,7 @@ const crearTienda = async (req, res) => {
     try {
         const nuevaTienda = new Tienda(req.body);
         await nuevaTienda.save();
-        res.status(201).json(nuevaTienda);
+        res.redirect("/tiendas/vista");
     } catch (error) {
         res.status(400).json({ error: "Error al crear la tienda. Verificá los datos." });
     }
