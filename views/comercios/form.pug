@@ -18,7 +18,7 @@ block content
 
         .field
           label(for="cuit") CUIT
-          input#cuit(type="text", name="cuit", placeholder="Ej: 20-12345678-9", required)
+          input#cuit(type="text", name="cuit", placeholder="Ej: 20-12345678-9", minlength="11", maxlength="13", pattern="[0-9\-]+", required)
 
         .field
           label(for="email_contacto") Email de contacto

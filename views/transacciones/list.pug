@@ -13,6 +13,7 @@ block content
           th Monto Total
           th Monto Pasarela
           th Estado Conciliación
+          th Observación
       tbody
         each transaccion in transacciones
           tr
@@ -31,3 +32,4 @@ block content
                 span.badge.badge-danger= estado
               else
                 span.badge= estado
+            td.small= transaccion.observacion
