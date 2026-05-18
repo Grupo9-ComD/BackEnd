@@ -80,7 +80,7 @@ const crearTransaccion = async (req, res) => {
         });
 
         await nuevaTransaccion.save();
-        res.redirect("/transacciones/vista");
+        res.status(201).json(nuevaTransaccion);
 
     } catch (error) {
         console.log(error); // Para ver detalles en la terminal si algo falla
@@ -160,6 +160,86 @@ const formularioNuevaTransaccion = async (req, res) => {
     }
 };
 
+const crearTransaccionVista = async (req, res) => {
+    try {
+        const { tienda_id, monto_total, monto_informado_pasarela, observacion } = req.body;
+
+        const tienda = await Tienda.findById(tienda_id);
+
+        if (!tienda) {
+            return res.status(404).send("La tienda indicada no existe.");
+        }
+
+        const comercio = await Comercio.findById(tienda.comercio_id);
+
+        if (!comercio) {
+            return res.status(404).send("El comercio asociado no existe.");
+        }
+
+        const comisionCalculada =
+            monto_total * comercio.comision_variable;
+
+        const ingresoCalculado =
+            monto_total - comisionCalculada;
+
+        let estadoConciliacion = "Pendiente";
+
+        let observacionFinal = observacion || "";
+
+        if (monto_informado_pasarela !== undefined) {
+
+            if (
+                Number(monto_total) ===
+                Number(monto_informado_pasarela)
+            ) {
+
+                estadoConciliacion = "Conciliado OK";
+
+                if (!observacionFinal) {
+                    observacionFinal =
+                        "Sin diferencias en el flujo monetario";
+                }
+
+            } else {
+
+                estadoConciliacion = "Con Diferencias";
+
+                if (!observacionFinal) {
+                    observacionFinal =
+                        "Revisar discrepancia entre venta y pasarela";
+                }
+            }
+        }
+
+        const nuevaTransaccion = new Transaccion({
+            tienda_id: tienda._id,
+            comercio_id: comercio._id,
+            monto_total,
+            monto_informado_pasarela,
+
+            split_pagos: {
+                comision_techretail: comisionCalculada,
+                ingreso_comercio: ingresoCalculado
+            },
+
+            estado_conciliacion: estadoConciliacion,
+            observacion: observacionFinal
+        });
+
+        await nuevaTransaccion.save();
+
+        res.redirect("/transacciones/vista");
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(400).send(
+            "Error al crear la transacción"
+        );
+    }
+};
+
 // EXPORTACIÓN
 export {
     obtenerTransacciones,
@@ -169,5 +249,6 @@ export {
     eliminarTransaccion,
     obtenerTransaccionesVista,
     obtenerTransaccionVista,
-    formularioNuevaTransaccion
+    formularioNuevaTransaccion,
+    crearTransaccionVista
 };

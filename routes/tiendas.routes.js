@@ -7,7 +7,8 @@ import {
     eliminarTienda,
     obtenerTiendasVista,
     obtenerTiendaVista,
-    formularioNuevaTienda
+    formularioNuevaTienda,
+    crearTiendaVista
 } from "../controllers/tiendas.controller.js";
 
 const router = express.Router();
@@ -65,6 +66,7 @@ const validateTiendaUpdate = (req, res, next) => {
 router.get("/vista", obtenerTiendasVista);
 router.get("/nuevo", formularioNuevaTienda);
 router.get("/vista/:id", validateIdParam, obtenerTiendaVista);
+router.post("/vista", validateTiendaCreate, crearTiendaVista);
 
 // ==========================================
 // RUTAS API REST (Endpoints para Thunder Client)

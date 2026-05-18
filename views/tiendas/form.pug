@@ -10,7 +10,7 @@ block content
         a.btn.btn-ghost(href="/tiendas/vista") Volver al Listado
 
     //- Formulario que hace un POST a nuestra API de tiendas
-    form(action="/tiendas" method="POST")
+    form( method="POST" action="/tiendas/vista")
       .form-group
         label(for="nombre_sucursal") Nombre de la Sucursal:
         input#nombre_sucursal(type="text" name="nombre_sucursal" required placeholder="Ej: Sucursal Centro")

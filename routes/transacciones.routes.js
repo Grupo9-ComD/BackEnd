@@ -7,7 +7,8 @@ import {
     eliminarTransaccion,
     obtenerTransaccionesVista,
     obtenerTransaccionVista,
-    formularioNuevaTransaccion
+    formularioNuevaTransaccion,
+    crearTransaccionVista
 } from "../controllers/transacciones.controller.js";
 
 const router = express.Router();
@@ -114,6 +115,7 @@ const validateTransaccionUpdate = (req, res, next) => {
 router.get("/vista", obtenerTransaccionesVista);
 router.get("/nuevo", formularioNuevaTransaccion);
 router.get("/vista/:id", validateIdParam, obtenerTransaccionVista);
+router.post("/vista", validateTransaccionCreate, crearTransaccionVista);
 
 // ==========================================
 // RUTAS API REST (Endpoints para Thunder Client)

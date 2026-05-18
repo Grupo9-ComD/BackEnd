@@ -25,7 +25,7 @@ const crearUsuario = async (req, res) => {
     try {
         const nuevoUsuario = new Usuario(req.body);
         await nuevoUsuario.save();
-        res.redirect("/usuarios/vista");
+        res.status(201).json(nuevoUsuario);
     } catch (error) {
         res.status(400).json({ error: "Error al crear usuario" });
     }
@@ -65,7 +65,20 @@ const formularioNuevoUsuario = (req, res) => {
     res.render("usuarios/form");
 };
 
+const crearUsuarioVista = async (req, res) => {
+   try {
+      const nuevoUsuario = new Usuario(req.body);
+
+      await nuevoUsuario.save();
+
+      res.redirect("/usuarios/vista");
+
+   } catch (error) {
+      res.status(400).send("Error...");
+   }
+};
+
 export {
     obtenerUsuarios, obtenerUsuarioPorId, crearUsuario, actualizarUsuario, eliminarUsuario,
-    obtenerUsuariosVista, formularioNuevoUsuario
+    obtenerUsuariosVista, formularioNuevoUsuario, crearUsuarioVista
 };

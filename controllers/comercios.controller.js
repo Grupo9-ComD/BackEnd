@@ -33,7 +33,7 @@ const crearComercio = async (req, res) => {
     try {
         const nuevoComercio = new Comercio(req.body);
         await nuevoComercio.save(); // Crea la colección automáticamente si no existe
-        res.redirect("/comercios/vista");
+         res.status(201).json(nuevoComercio);
     } catch (error) {
         res.status(400).json({ error: "Error al crear el comercio. Verificá los datos." });
     }
@@ -92,6 +92,19 @@ const formularioNuevoComercio = (req, res) => {
     res.render("comercios/form");
 };
 
+const crearComercioVista = async (req, res) => {
+   try {
+      const nuevoComercio = new Comercio(req.body);
+
+      await nuevoComercio.save();
+
+      res.redirect("/comercios/vista");
+
+   } catch (error) {
+      res.status(400).send("Error al crear comercio");
+   }
+};
+
 
 // GET BY ID (PARA LA VISTA)
 const obtenerComercioVista = async (req, res) => {
@@ -116,5 +129,6 @@ export {
     eliminarComercio,
     obtenerComerciosVista,
     obtenerComercioVista,     // <-- ¡Acá está la que pedía tu archivo de rutas!
-    formularioNuevoComercio
+    formularioNuevoComercio,
+    crearComercioVista
 };

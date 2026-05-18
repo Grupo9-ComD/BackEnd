@@ -5,7 +5,7 @@ block content
     .card-header
       h1 Procesar Nueva Venta
       a.btn.btn-ghost(href="/transacciones/vista") Volver
-    form(action="/transacciones" method="POST")
+    form(action="/transacciones/vista" method="POST")
       .form-group
         label Tienda:
         //- Usamos select iterando sobre la variable "tiendas" que manda el controlador

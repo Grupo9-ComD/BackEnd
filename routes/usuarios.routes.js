@@ -7,7 +7,8 @@ import {
     actualizarUsuario,
     eliminarUsuario,
     obtenerUsuariosVista,
-    formularioNuevoUsuario
+    formularioNuevoUsuario,
+    crearUsuarioVista
 } from "../controllers/usuarios.controller.js";
 
 const router = express.Router();
@@ -72,6 +73,8 @@ router.get("/:id", validateIdParam, obtenerUsuarioPorId);
 
 // CREATE
 router.post("/", validateUsuarioCreate, crearUsuario);
+router.post("/vista", validateUsuarioCreate, crearUsuarioVista);
+
 
 // UPDATE
 router.put("/:id", validateIdParam, validateUsuarioUpdate, actualizarUsuario);

@@ -7,7 +7,8 @@ import {
     eliminarEnvio,
     obtenerEnviosVista,
     obtenerEnvioVista,
-    formularioNuevoEnvio
+    formularioNuevoEnvio,
+    crearEnvioVista
 } from "../controllers/logistica.controller.js";
 
 const router = express.Router();
@@ -65,6 +66,7 @@ const validateEnvioUpdate = (req, res, next) => {
 router.get("/vista", obtenerEnviosVista);
 router.get("/nuevo", formularioNuevoEnvio);
 router.get("/vista/:id", validateIdParam, obtenerEnvioVista);
+router.post("/vista", validateEnvioCreate, crearEnvioVista);
 
 // ==========================================
 // RUTAS API REST (Endpoints para Thunder Client)

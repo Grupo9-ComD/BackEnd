@@ -48,7 +48,7 @@ const crearEnvio = async (req, res) => {
         });
 
         await nuevoEnvio.save();
-        res.redirect("/logistica/vista");
+        res.status(201).json(nuevoEnvio);
     } catch (error) {
         console.log(error); // Para debug en consola
         res.status(400).json({ error: "Error al crear el envío. Verificá los datos." });
@@ -125,6 +125,19 @@ const formularioNuevoEnvio = async (req, res) => {
     }
 };
 
+const crearEnvioVista = async (req, res) => {
+   try {
+      const nuevoEnvio = new Logistica(req.body);
+
+      await nuevoEnvio.save();
+
+      res.redirect("/logistica/vista");
+
+   } catch (error) {
+      res.status(400).send("Error...");
+   }
+};
+
 // EXPORTACIÓN MODERNA
 export {
     obtenerEnvios,
@@ -134,5 +147,6 @@ export {
     eliminarEnvio,
     obtenerEnviosVista,
     obtenerEnvioVista,
-    formularioNuevoEnvio
+    formularioNuevoEnvio,
+    crearEnvioVista
 };
