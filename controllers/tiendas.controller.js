@@ -32,6 +32,10 @@ const obtenerTiendaPorId = async (req, res) => {
 // CREATE
 const crearTienda = async (req, res) => {
     try {
+        const comercioExistente = await Comercio.findById(req.body.comercio_id);
+        if (!comercioExistente) {
+            return res.status(404).json({ error: "El comercio no existe." });
+        }
         const nuevaTienda = new Tienda(req.body);
         await nuevaTienda.save();
         res.status(201).json(nuevaTienda);
@@ -81,7 +85,9 @@ const eliminarTienda = async (req, res) => {
 // ==========================================
 const obtenerTiendasVista = async (req, res) => {
     try {
-        const tiendas = await Tienda.find().lean(); 
+        const tiendas = await Tienda.find()
+        .populate("comercio_id", "nombre_comercio")
+        .lean(); 
         res.render("tiendas/list", { tiendas });
     } catch (error) {
         res.status(500).send("Error al cargar la vista de tiendas");
