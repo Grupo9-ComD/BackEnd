@@ -22,7 +22,7 @@ block content
           tr
             td= tienda._id
             td= tienda.nombre_sucursal
-            td= tienda.comercio_id 
+            td= tienda.comercio_id.nombre_comercio
             td= tienda.ubicacion
             td
               if tienda.estado === "Activo" || tienda.estado === "Activa"
