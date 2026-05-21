@@ -129,7 +129,9 @@ const eliminarTransaccion = async (req, res) => {
 // ==========================================
 const obtenerTransaccionesVista = async (req, res) => {
     try {
-        const transacciones = await Transaccion.find().lean(); 
+        const transacciones = await Transaccion.find()
+        .populate("tienda_id", "nombre_sucursal")
+        .lean(); 
         res.render("transacciones/list", { transacciones });
     } catch (error) {
         res.status(500).send("Error al cargar la vista de transacciones");

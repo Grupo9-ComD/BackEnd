@@ -9,7 +9,7 @@ block content
       thead
         tr
           th ID
-          th Tienda ID
+          th Tienda Asociada
           th Monto Total
           th Monto Pasarela
           th Estado Conciliación
@@ -20,7 +20,11 @@ block content
             //- Cambiamos .id por ._id
             td= transaccion._id
             //- Cambiamos .id_tienda por .tienda_id
-            td= transaccion.tienda_id
+            td
+              if transaccion.tienda_id && transaccion.tienda_id.nombre_sucursal
+                | #{transaccion.tienda_id.nombre_sucursal}
+              else
+                span.muted Sin tienda asignada
             td= transaccion.monto_total
             td= transaccion.monto_informado_pasarela
             td
