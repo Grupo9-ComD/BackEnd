@@ -40,6 +40,12 @@ const crearEnvio = async (req, res) => {
             return res.status(404).json({ error: "La transacción indicada no existe." });
         }
 
+        //validamos que la transaccion no este anulada
+        if (transaccionAsociada.estado_transaccion === "Anulada") {
+            return res.status(400).json({ error: "No se puede crear un envío para una transacción anulada." });
+        }
+
+        // Si todo está bien, creamos el nuevo envío
         const nuevoEnvio = new Logistica({
             transaccion_id: transaccionAsociada._id,
             empresa_transporte,
@@ -118,7 +124,9 @@ const obtenerEnvioVista = async (req, res) => {
 const formularioNuevoEnvio = async (req, res) => {
     try {
         // Traemos las transacciones para que el usuario pueda elegir en un <select>
-        const transacciones = await Transaccion.find().lean();
+        const transacciones = await Transaccion.find({ 
+            estado_conciliacion: { $ne: "Anulada" } 
+        }).lean();
         res.render("logistica/form", { transacciones });
     } catch (error) {
         res.status(500).send("Error al cargar el formulario de logística");
