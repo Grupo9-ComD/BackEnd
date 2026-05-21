@@ -40,6 +40,12 @@ const crearEnvio = async (req, res) => {
             return res.status(404).json({ error: "La transacción indicada no existe." });
         }
 
+        //validamos que la transaccion no este anulada
+        if (transaccionAsociada.estado_transaccion === "Anulada") {
+            return res.status(400).json({ error: "No se puede crear un envío para una transacción anulada." });
+        }
+
+        // Si todo está bien, creamos el nuevo envío
         const nuevoEnvio = new Logistica({
             transaccion_id: transaccionAsociada._id,
             empresa_transporte,
