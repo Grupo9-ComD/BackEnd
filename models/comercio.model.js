@@ -28,7 +28,7 @@ const comercioSchema = new mongoose.Schema({
         type: String, 
         required: true,
         trim: true,
-        enum: ["Basico", "Básico", "Premium"]
+        enum: ["Basico", "Premium"]
     },
     comision_variable: { 
         type: Number, 
