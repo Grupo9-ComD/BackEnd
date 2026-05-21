@@ -124,7 +124,9 @@ const obtenerEnvioVista = async (req, res) => {
 const formularioNuevoEnvio = async (req, res) => {
     try {
         // Traemos las transacciones para que el usuario pueda elegir en un <select>
-        const transacciones = await Transaccion.find().lean();
+        const transacciones = await Transaccion.find({ 
+            estado_conciliacion: { $ne: "Anulada" } 
+        }).lean();
         res.render("logistica/form", { transacciones });
     } catch (error) {
         res.status(500).send("Error al cargar el formulario de logística");
