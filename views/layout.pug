@@ -314,11 +314,13 @@ html(lang="es")
         border-top: 1px solid var(--border);
       }
 
-  body
+body
     header.site-header
       .container
         .site-header-inner
           a.brand(href="/")
+          
+            img(src='/logodev.jpeg', alt='Logo DeveloPET Friendly', width='150')
             span.brand-badge TR
             span TechRetail Solutions
           nav.nav
@@ -326,6 +328,7 @@ html(lang="es")
             a.nav-link(href="/comercios/vista") Comercios
     main.site-main
       .container
+
         block content
     footer.footer
       .container
