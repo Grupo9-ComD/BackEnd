@@ -41,7 +41,7 @@ const crearEnvio = async (req, res) => {
         }
 
         //validamos que la transaccion no este anulada
-        if (transaccionAsociada.estado_transaccion === "Anulada") {
+        if (transaccionAsociada.estado_conciliacion === "Anulada") {
             return res.status(400).json({ error: "No se puede crear un envío para una transacción anulada." });
         }
 
