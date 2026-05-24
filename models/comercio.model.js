@@ -14,7 +14,7 @@ const comercioSchema = new mongoose.Schema({
         trim: true,
         validate: {
             validator: (value) => /^\d{2}-\d{8}-\d{1}$/.test(value),
-            message: "El CUIT debe tener el formato XX-XXXXXXXX-X (ej: 27-37143301-0)"
+            message: "El CUIT debe tener el formato XX-XXXXXXXX-X."
         }
     },
     email_contacto: { 
@@ -22,9 +22,12 @@ const comercioSchema = new mongoose.Schema({
         required: true,
         trim: true,
         lowercase: true,
-        match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        validate: {
+            validator: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+            message: "El email debe tener un formato válido (ej: usuario@empresa.com)"
+        }
     },
-    plan_suscripcion: { 
+    plan_suscripcion: {  
         type: String, 
         required: true,
         trim: true,
