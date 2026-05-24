@@ -13,8 +13,8 @@ const comercioSchema = new mongoose.Schema({
         required: true,
         trim: true,
         validate: {
-            validator: (value) => String(value ?? "").replace(/\D/g, "").length === 11,
-            message: "cuit debe tener 11 dígitos"
+            validator: (value) => /^\d{2}-\d{8}-\d{1}$/.test(value),
+            message: "El CUIT debe tener el formato XX-XXXXXXXX-X (ej: 27-37143301-0)"
         }
     },
     email_contacto: { 
